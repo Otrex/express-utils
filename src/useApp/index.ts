@@ -1,5 +1,5 @@
 import { Express } from "express";
-export default function useApp(app: Express) {
+export default function (app: Express) {
   const _app = app;
   const use = (...args: any[]) => {
     _app.use(...args);

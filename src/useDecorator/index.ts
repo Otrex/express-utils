@@ -7,7 +7,7 @@ const resolveRoutePath = (path: string) => {
     return path.split(/(?=[A-Z])/).join('-').toLowerCase(); 
 }
 
-export default function useDecorator (baseRoute = '') {
+export default function (baseRoute = '') {
     const _globalMiddleware: any[] = [];
     const _routes: Routes[] = [];
     let _baseRoute = baseRoute;
