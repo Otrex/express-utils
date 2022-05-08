@@ -3,6 +3,10 @@ import { Router } from "express";
 export interface Routes { method: string, path?: string, middlewares?: any[] };
 export interface IAddRoute extends Routes { validator?: any; }
 
+const resolveRoutePath = (path: string) => {
+    return path.split(/(?=[A-Z])/).join('-').toLowerCase(); 
+}
+
 export default function useDecorator (baseRoute = '') {
     const _globalMiddleware: any[] = [];
     const _routes: Routes[] = [];
@@ -29,7 +33,7 @@ export default function useDecorator (baseRoute = '') {
             
             const route: Routes = {
                 middlewares: [...(middlewares || [])],
-                path: path || `/${propertyKey}`,
+                path: path || `/${resolveRoutePath(propertyKey)}`,
                 method,
             }
 
