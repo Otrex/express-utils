@@ -1,11 +1,9 @@
-import { Router } from "express";
+import { NextFunction, Router } from "express";
 
 export interface Routes { method: string, path?: string, middlewares?: any[] };
-export interface IAddRoute extends Routes { validator?: any; }
+export interface IAddRoute extends Routes { validator?: any; useAsyncHandler?: boolean }
 
-const resolveRoutePath = (path: string) => {
-    return path.split(/(?=[A-Z])/).join('-').toLowerCase(); 
-}
+const resolveRoutePath = (path: string) => path.split(/(?=[A-Z])/).join('-').toLowerCase(); 
 
 export default function (baseRoute = '') {
     const _globalMiddleware: any[] = [];
@@ -26,8 +24,18 @@ export default function (baseRoute = '') {
         return class extends constructor {}
     }
 
+    const asyncHandler = (controller: (...args: any[]) => any) => {
+        return async (req: any, res: any, next: NextFunction) => {
+            try {
+                await controller(req, res, next)
+            } catch (error) {
+                next(error)
+            }
+        }
+    }
+
     const addRoute = (routeParams: IAddRoute) => {
-        const { method, path, middlewares, validator } = routeParams;
+        const { method, path, middlewares, validator, useAsyncHandler } = routeParams;
         return  (target: any, propertyKey: string) => {
             const handler = target[propertyKey]
             
@@ -42,16 +50,29 @@ export default function (baseRoute = '') {
                 return handler.apply(null, args)
             }
 
-            route.middlewares!.push(handler)
+            const $wrapperFn = useAsyncHandler ? asyncHandler(wrapperFn) : wrapperFn
+
+            route.middlewares!.push($wrapperFn)
             _routes.push(route);
-            Object.assign(target, { [propertyKey]: wrapperFn })
+            Object.assign(target, { [propertyKey]: $wrapperFn })
         };
     }
 
+    const Controller = () => {
+        return class _controller {
+            static registerRoutes = registerRoutes
+            static asyncHandler = asyncHandler
+            static addRoute = addRoute
+            static routes = _routes
+        }
+    }
+
     return {
+        Controller: Controller(),
         globalMiddleware,
         routes: _routes,
         registerRoutes,
+        asyncHandler,
         addRoute,
     }
 }
