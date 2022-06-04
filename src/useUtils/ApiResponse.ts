@@ -1,7 +1,7 @@
 import { Response } from "express";
 
 export class _APIResponse<T> {
-  constructor(public status: number, public message?: string, public data?: Record<string, T> ) {}
+  constructor(public status: number, public data?: Record<string, T> ) {}
   prepare(res: Response) {
     return res.status(this.status).json(this.sanitize(this.data))
   }

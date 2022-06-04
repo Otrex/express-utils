@@ -1,4 +1,5 @@
-import { NextFunction, Router } from "express";
+import { NextFunction, Response, Router } from "express";
+import { _APIResponse } from "../useUtils/ApiResponse";
 
 export interface Routes { method: string, path?: string, middlewares?: any[] };
 export interface IAddRoute extends Routes { validator?: any; useAsyncHandler?: boolean }
@@ -9,6 +10,10 @@ export default function (baseRoute = '') {
     const _globalMiddleware: any[] = [];
     const _routes: Routes[] = [];
     let _baseRoute = baseRoute;
+
+    const success = <T extends Record<string, any>>(res: Response, data: T) => {
+        return new _APIResponse(200, data).send(res);
+    }
 
     const registerRoutes = (router: Router) => {
         if (_globalMiddleware.length) router.use(..._globalMiddleware);
@@ -74,5 +79,6 @@ export default function (baseRoute = '') {
         registerRoutes,
         asyncHandler,
         addRoute,
+        success
     }
 }
