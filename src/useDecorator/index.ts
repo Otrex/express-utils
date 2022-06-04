@@ -11,8 +11,8 @@ export default function (baseRoute = '') {
     const _routes: Routes[] = [];
     let _baseRoute = baseRoute;
 
-    const success = <T extends Record<string, any>>(res: Response, data: T) => {
-        return new _APIResponse(200, data).send(res);
+    const success = <T extends Record<string, any>>(res: Response, data: T, status = 200) => {
+        return new _APIResponse(status, data).send(res);
     }
 
     const registerRoutes = (router: Router) => {
