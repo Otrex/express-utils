@@ -38,6 +38,7 @@ export type Level = "error"|"warning"|"info"| string
 export default class _Logger {
   static _DEFAULT_SCOPE = 'app';
   specifiedColor: string;
+  console: any;
 
   static parsePathToScope(filepath:string) {
     if (filepath.indexOf(path.sep) >= 0) {
@@ -53,10 +54,12 @@ export default class _Logger {
 
   #scope: string;
 
-  constructor(scope?: string) {
+  constructor(scope?: string, _console?: any) {
     this.#scope = _Logger.parsePathToScope(
       scope ? scope : _Logger._DEFAULT_SCOPE
     );
+
+    this.console = _console || console
   }
 
   setScope(scope: string) {

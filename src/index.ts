@@ -6,11 +6,14 @@ import {
 } from "./useUtils/ApiResponse";
 import _APIError from "./useUtils/ApiError";
 import app from "./useApp";
-import { _validateConfig } from "./useUtils/ConfigValidator";
+import { _validateConfig, _createConfig } from "./useUtils/ConfigValidator";
 import _RegisterController from "./useUtils/RegisterControllers";
+import { generateHash, generateRandomCode } from "./useUtils/Generators";
 
+export const generators = { generateRandomCode, generateHash }
 export const RegisterController = _RegisterController;
 export const validateConfig = _validateConfig;
+export const createConfig = _createConfig
 export const paginate = _paginateResponse;
 export const APIResponse = _APIResponse;
 export const useDecorator = decorator;

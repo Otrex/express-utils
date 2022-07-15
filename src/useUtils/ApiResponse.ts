@@ -13,13 +13,13 @@ export class _APIResponse<T> {
   }
 }
 
-export function _paginateResponse(data: [any[], number], page: number, limit: number) {
+export function _paginateResponse<T>(data: [T, number], page: number, limit: number, sanitizer = (d: T): any => d) {
   const [result, total] = data;
   const lastPage = Math.ceil(total / limit);
   const nextPage = page + 1 > lastPage ? null : page + 1;
   const prevPage = page - 1 < 1 ? null : page - 1;
   return {
-    data: [...result],
+    data: sanitizer(result),
     pageData: {
       total,
       currentPage: +page,

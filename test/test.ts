@@ -7,8 +7,9 @@ const { Controller, globalMiddleware, asyncHandler } = useDecorator();
 
 @globalMiddleware('/ok')
 class BaseController extends Controller {
-  @BaseController.addRoute({ method: 'get', path: '/omit', useAsyncHandler: true, validator: (req: any) => { console.log(req); throw Error('not working')} })
+  @BaseController.addRoute({ method: 'get', path: '/omit', useAsyncHandler: true, validator: (req: any) => { } })
   async hello (req: any, res: any, next: any) {
+    console.log(req); 
     res.send('Ok')
   }
 
