@@ -91,12 +91,12 @@ export default class _App<
     return this;
   }
 
-  beforeStart(setupFnc = async () => {}) {
+  beforeStart(setupFnc = async (http: http.Server, app: T) => {}) {
     this._setup = setupFnc;
     return this;
   }
 
-  afterStart(setupFnc = async () => {}) {
+  afterStart(setupFnc = async (http: http.Server, app: T) => {}) {
     this._asetup = setupFnc;
     return this;
   }
