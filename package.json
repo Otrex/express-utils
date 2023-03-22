@@ -1,17 +1,24 @@
 {
   "name": "@obisiket1/express-utils",
-  "version": "0.0.15",
+  "version": "0.0.18",
   "description": "This is a library of utility decorators, components, and functions that can be used together with typescript express",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "repository": "https://github.com/Otrex/express-utils.git",
   "author": "Obisike Treasure",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "publish": "rimraf ./build && tsc && np"
+  },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/node": "^18.15.5",
     "express": "^4.18.1",
     "mocha": "^10.0.0",
+    "rimraf": "^4.4.1",
     "typescript": "^4.6.4"
   }
 }
