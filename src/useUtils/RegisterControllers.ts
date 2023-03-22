@@ -12,12 +12,12 @@ export default class _RegisterController {
   }
 
   register(route: Router) {
-    this.router.use(route)
+    this.router.use(route);
   }
 
   registerAll(routes: Router[]) {
-    routes.forEach(e => {
-      this.router.use(e)
-    })
+    routes.forEach((e) => {
+      this.router.use(e);
+    });
   }
 }
