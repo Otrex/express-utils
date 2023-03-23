@@ -35,6 +35,12 @@ export default class AuthController extends Controller(Router) {
   <th> Decorator </th>
   <th> Description </th>
   <tr>
+    <td> GlobalMiddleware </td>
+    <td> 
+      The `GlobalMiddleware` as the name entails, sets up a global middleware accross routes on the class.
+    </td>
+  </tr>
+  <tr>
     <td> Get </td>
     <td> 
       The  `Get` decorator makes the function a get request handler. It takes `options` in the form: 

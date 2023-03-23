@@ -17,3 +17,8 @@ export function generateHash(seed: string) {
   const data = seed.toString() + Date.now().toString();
   return crypto.createHash("sha256").update(data).digest("hex");
 }
+
+export default {
+  generateRandomCode,
+  generateHash
+}
