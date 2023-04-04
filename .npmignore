@@ -2,3 +2,6 @@
 ./test
 yarn-error.log
 .np-config.json
+src/**/*
+./pkg/
+node_modules/
