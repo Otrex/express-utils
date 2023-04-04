@@ -4,7 +4,7 @@ import {
   Response,
   Router,
   RouterOptions,
-  RequestHandler
+  RequestHandler,
 } from "express";
 import { _APIResponse } from "../useUtils/ApiResponse";
 
@@ -19,22 +19,21 @@ export interface IAddRoute extends Routes {
 }
 
 interface ClassConstructor {
-  new (...args: any[]): {}
+  new (...args: any[]): {};
 }
-
-// export type ArrayUseHandler = [string, RequestHandler[]] | [string, RequestHandler];
-// export type UseHandler = ArrayUseHandler | RequestHandler | RequestHandler[];
 
 export type Middleware = RequestHandler | RequestHandler[];
 
 type UseHandler = {
   path?: string;
   handlers: Middleware[];
-}
-// type UseHandler = RequestHandler;
+};
 
-type GlobalOptions = { path?: string, middlewares?: Middleware[], use?: UseHandler[] }
-
+type GlobalOptions = {
+  path?: string;
+  middlewares?: Middleware[];
+  use?: UseHandler[];
+};
 
 const resolveRoutePath = (path: string) =>
   path
@@ -71,7 +70,7 @@ const wrapper =
 export default function (baseRoute = "") {
   const _globalMiddleware: Middleware[] = [];
   const _routes: { [key: string]: Routes[] } = {};
-  const _useHandlers: UseHandler[] = []
+  const _useHandlers: UseHandler[] = [];
   let _baseRoute = baseRoute;
 
   const RouterPartials = (
@@ -104,7 +103,7 @@ export default function (baseRoute = "") {
       state: "success",
       timestamp: Date.now(),
       ...data,
-    }
+    };
     return new _APIResponse(status, _data).send(res);
   };
 
@@ -114,10 +113,12 @@ export default function (baseRoute = "") {
    * @returns express.Router
    */
   const RegisterRoutes = (router: Router) => {
-    if (_useHandlers.length) _useHandlers.map((args) => {
-      if (args.path) router.use(`${_baseRoute}${args.path}`, ...args.handlers as any)
-      else router.use(...args.handlers);
-    })
+    if (_useHandlers.length)
+      _useHandlers.map((args) => {
+        if (args.path)
+          router.use(`${_baseRoute}${args.path}`, ...(args.handlers as any));
+        else router.use(...args.handlers);
+      });
     if (_globalMiddleware.length) router.use(..._globalMiddleware);
 
     Object.entries(_routes).forEach(([_, routes]) => {
@@ -137,13 +138,15 @@ export default function (baseRoute = "") {
    * @param middlewares - Middleware[]
    * @returns contructor
    */
-  const GlobalMiddleware = (options: GlobalOptions) => <T extends ClassConstructor>(constructor: T) => {
-    const { path: baseRoute, middlewares, use } = options;
-    if (baseRoute) _baseRoute = baseRoute;
-    if (middlewares) _globalMiddleware.push(...middlewares);
-    if (use) _useHandlers.push(...use);
-    return class extends constructor {};
-  };
+  const GlobalMiddleware =
+    (options: GlobalOptions) =>
+    <T extends ClassConstructor>(constructor: T) => {
+      const { path: baseRoute, middlewares, use } = options;
+      if (baseRoute) _baseRoute = baseRoute;
+      if (middlewares) _globalMiddleware.push(...middlewares);
+      if (use) _useHandlers.push(...use);
+      return class extends constructor {};
+    };
 
   /**
    * This is used to add the routes

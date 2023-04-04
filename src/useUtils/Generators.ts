@@ -20,5 +20,5 @@ export function generateHash(seed: string) {
 
 export default {
   generateRandomCode,
-  generateHash
-}
+  generateHash,
+};

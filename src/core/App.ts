@@ -4,24 +4,39 @@ import Router from "./Router";
 import { Logger } from "..";
 
 const logger = Logger.getLogger("app.server");
-interface SetupFunction<T> {
-  (h?: http.Server, a?: T): Promise<void>;
+
+export interface PartialsSetupFunction<
+  T extends http.ServerOptions | Record<string, any>
+> {
+  (ctx: { httpServer: http.Server; plugin: T; self: _App<T> }): void;
 }
-interface RunOptions<T = any> {
+
+export interface SetupFunction<
+  T extends http.ServerOptions | Record<string, any>
+> {
+  (ctx: { httpServer: http.Server; plugin: T; self: _App<T> }): Promise<void>;
+}
+
+export interface RunOptions<
+  T extends http.ServerOptions | Record<string, any>
+> {
   port?: number;
   setup?: SetupFunction<T>;
+  shutdown?: (server: http.Server) => NodeJS.SignalsListener;
+  afterSetup?: PartialsSetupFunction<T>;
   callback?: Function;
   forceStart?: boolean;
 }
+
 const defaultOptions = {
   port: 3000,
-  setup: async () => {},
+  setup: async (ctx: any) => {},
   callback: (port: number) => {
-    logger.useColor("green")
+    logger.useColor("green");
     logger.info("-----------------------------------------------");
     logger.info(`\u{1F6EB} Server started @PORT=${port}`);
     logger.info("-----------------------------------------------\n");
-  }
+  },
 };
 
 export default class _App<
@@ -80,8 +95,12 @@ export default class _App<
     return this;
   }
 
-  partial(fnc = (app: T, httpServer: http.Server): void => {}) {
-    fnc(this._app, this._httpServer);
+  partial(fnc: PartialsSetupFunction<T>) {
+    fnc({
+      httpServer: this._httpServer,
+      plugin: this._app,
+      self: this,
+    });
     return this;
   }
 
@@ -91,12 +110,12 @@ export default class _App<
     return this;
   }
 
-  beforeStart(setupFnc = async (http: http.Server, app: T) => {}) {
+  beforeStart(setupFnc: SetupFunction<T>) {
     this._setup = setupFnc;
     return this;
   }
 
-  afterStart(setupFnc = async (http: http.Server, app: T) => {}) {
+  afterStart(setupFnc: SetupFunction<T>) {
     this._asetup = setupFnc;
     return this;
   }
@@ -110,6 +129,8 @@ export default class _App<
       port,
       callback,
       setup,
+      shutdown,
+      afterSetup,
       forceStart = false,
       httpListenOptions = [],
     } = {
@@ -119,6 +140,7 @@ export default class _App<
 
     this._port = isNaN(+port) ? 8000 : +port;
     this._setup = this._setup || setup;
+    this._asetup = this._asetup || afterSetup;
 
     this.addListener("ready", () => {
       let retry = false;
@@ -127,7 +149,22 @@ export default class _App<
       this._httpServer.on("listening", () => {
         callback(this._port);
         this._asetup &&
-          this._asetup().catch((err) => this.emit("after-start-error", err));
+          this._asetup({
+            httpServer: this._httpServer,
+            plugin: this._app,
+            self: this,
+          }).catch((err) => this.emit("after-start-error", err));
+
+        const die = shutdown
+          ? shutdown(this._httpServer)
+          : (...any: any[]) => {};
+
+        process.on("SIGINT", (e) => {
+          die(e);
+          this._httpServer.close(() =>
+            logger.info(`Server has gracefully shut down`)
+          );
+        });
       });
 
       this._httpServer.on("error", (err: Error & { code: string }) => {
@@ -150,7 +187,11 @@ export default class _App<
       });
     });
 
-    this._setup(this._httpServer, this._app)
+    this._setup({
+      httpServer: this._httpServer,
+      plugin: this._app,
+      self: this,
+    })
       .then(() => this.emit("ready"))
       .catch((err) => {
         this.emit("before-start-error", err);

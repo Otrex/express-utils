@@ -1,23 +1,26 @@
 import { Router } from "express";
 
 export default class _RegisterController {
-  router: Router;
+  Router: Router;
   static setup(routes: Router[]) {
-    const controllers = new _RegisterController();
-    controllers.registerAll(routes);
-    return controllers.router;
+    const controllers = new _RegisterController(routes);
+    return controllers.Router;
   }
-  constructor() {
-    this.router = Router();
+  static create(routes: Router[]) {
+    return new _RegisterController(routes);
+  }
+  constructor(routes: Router[]) {
+    this.Router = Router();
+    this.registerAll(routes);
   }
 
   register(route: Router) {
-    this.router.use(route);
+    this.Router.use(route);
   }
 
   registerAll(routes: Router[]) {
     routes.forEach((e) => {
-      this.router.use(e);
+      this.Router.use(e);
     });
   }
 }

@@ -1,5 +1,3 @@
-
-
 export default class _Router {
   static setHandler<T extends Record<string, any>>(
     handler: () => T,

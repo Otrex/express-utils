@@ -3,6 +3,7 @@
 This is an express based utility library that provides utility decorators that can be used together with express typescript.
 
 ### UseDecorator
+
 The `useDecorator` is a function that returns decorators that can be used to setup your routes
 
 ```javascript
@@ -15,22 +16,20 @@ const { GlobalMiddleware, Success, Controller, Post } = useDecorator();
 export default class AuthController extends Controller(Router) {
   @Post()
   async register(req: Request, res: Response, next: NextFunction) {
-
     const result = {
-      "data": {
+      data: {
         test: "red",
-        "jesus": [
-          "red", "green", "blue"
-        ]
-      }
+        jesus: ["red", "green", "blue"],
+      },
     };
 
     return Success(res, result);
   }
 }
-
 ```
+
 > Decorators Contained in the `useDecorator` include:
+
 <table>
   <th> Decorator </th>
   <th> Description </th>

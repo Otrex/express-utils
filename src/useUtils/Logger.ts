@@ -44,12 +44,12 @@ export default class _Logger {
 
   static use(scope?: string) {
     console.log(">>", scope);
-    
+
     _Logger.Log = new _Logger(scope);
   }
 
   static getLogger(scope?: string) {
-    return new _Logger(scope)
+    return new _Logger(scope);
   }
 
   static parsePathToScope(filepath: string) {

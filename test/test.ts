@@ -9,7 +9,7 @@
 // class BaseController extends Controller {
 //   @BaseController.addRoute({ method: 'get', path: '/omit', useAsyncHandler: true, validator: (req: any) => { } })
 //   async hello (req: any, res: any, next: any) {
-//     console.log(req); 
+//     console.log(req);
 //     res.send('Ok')
 //   }
 
