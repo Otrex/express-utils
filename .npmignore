@@ -4,4 +4,7 @@ yarn-error.log
 .np-config.json
 src/**/*
 ./pkg/
+pkg
+pkg/**
+pkg/**/*
 node_modules/

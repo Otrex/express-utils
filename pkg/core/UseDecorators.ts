@@ -6,23 +6,13 @@ import {
   RouterOptions,
   RequestHandler,
 } from "express";
-import { _APIResponse } from "../useUtils/ApiResponse";
+import { IAddRoute, Middleware, Routes } from "../types";
+import { _APIResponse } from "./ApiResponse"
 
-export interface Routes {
-  method: string;
-  path?: string;
-  middlewares?: any[];
-}
-export interface IAddRoute extends Routes {
-  validator?: any;
-  useAsyncHandler?: boolean;
-}
 
 interface ClassConstructor {
   new (...args: any[]): {};
 }
-
-export type Middleware = RequestHandler | RequestHandler[];
 
 type UseHandler = {
   path?: string;

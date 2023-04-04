@@ -29,3 +29,7 @@
 // app.use(BaseController.registerRoutes(express.Router()))
 
 // app.listen(8011, () => console.log("Working"))
+
+// import { Config } from "../pkg";
+
+// Config.createConfig({})

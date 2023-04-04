@@ -2,31 +2,9 @@ import http from "http";
 import { EventEmitter } from "events";
 import Router from "./Router";
 import { Logger } from "..";
+import { PartialsSetupFunction, RunOptions, SetupFunction } from "../types";
 
 const logger = Logger.getLogger("app.server");
-
-export interface PartialsSetupFunction<
-  T extends http.ServerOptions | Record<string, any>
-> {
-  (ctx: { httpServer: http.Server; plugin: T; self: _App<T> }): void;
-}
-
-export interface SetupFunction<
-  T extends http.ServerOptions | Record<string, any>
-> {
-  (ctx: { httpServer: http.Server; plugin: T; self: _App<T> }): Promise<void>;
-}
-
-export interface RunOptions<
-  T extends http.ServerOptions | Record<string, any>
-> {
-  port?: number;
-  setup?: SetupFunction<T>;
-  shutdown?: (server: http.Server) => NodeJS.SignalsListener;
-  afterSetup?: PartialsSetupFunction<T>;
-  callback?: Function;
-  forceStart?: boolean;
-}
 
 const defaultOptions = {
   port: 3000,
