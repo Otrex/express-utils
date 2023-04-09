@@ -2,7 +2,7 @@ import { Logger } from "..";
 
 type GenericConfig = Record<
   string,
-  boolean | number | string | Record<string, boolean | number | string>
+  boolean | number | string | Record<string, boolean | number | string | string[] | number[]>
 >;
 
 export const _validateConfig = <T extends Record<string, any>>(
@@ -57,8 +57,7 @@ export const _createConfig = <T extends GenericConfig>(data: {
   config: T;
 }) => _validateConfig(data.config, data.optional || [], data.exitOnFail);
 
-
 export default {
   createConfig: _createConfig,
-  validateConfig: _validateConfig
-}
+  validateConfig: _validateConfig,
+};

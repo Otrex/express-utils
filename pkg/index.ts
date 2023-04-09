@@ -1,7 +1,6 @@
 import { _validateConfig, _createConfig } from "./core/ConfigValidator";
 import { _paginateResponse, _APIResponse } from "./core/ApiResponse";
 
-
 export const validateConfig = _validateConfig;
 export const createConfig = _createConfig;
 export const paginate = _paginateResponse;

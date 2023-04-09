@@ -1,6 +1,4 @@
-import {
-  RequestHandler,
-} from "express";
+import { RequestHandler } from "express";
 import http from "http";
 import _App from "../core/App";
 
@@ -15,7 +13,6 @@ export interface IAddRoute extends Routes {
 }
 
 export type Middleware = RequestHandler | RequestHandler[];
-
 
 export interface PartialsSetupFunction<
   T extends http.ServerOptions | Record<string, any>
@@ -39,4 +36,3 @@ export interface RunOptions<
   callback?: Function;
   forceStart?: boolean;
 }
-

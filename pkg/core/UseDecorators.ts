@@ -4,11 +4,9 @@ import {
   Response,
   Router,
   RouterOptions,
-  RequestHandler,
 } from "express";
 import { IAddRoute, Middleware, Routes } from "../types";
-import { _APIResponse } from "./ApiResponse"
-
+import { _APIResponse } from "./ApiResponse";
 
 interface ClassConstructor {
   new (...args: any[]): {};
@@ -24,7 +22,6 @@ type GlobalOptions = {
   middlewares?: Middleware[];
   use?: UseHandler[];
 };
-
 const resolveRoutePath = (path: string) =>
   path
     .split(/(?=[A-Z])/)
@@ -155,9 +152,15 @@ export default function (baseRoute = "") {
     return (target: any, propertyKey: string) => {
       const handler = target[propertyKey];
 
+      const $path =
+        path ||
+        (propertyKey.toLowerCase() === "index"
+          ? "/"
+          : `/${resolveRoutePath(propertyKey)}`);
+
       const route: Routes = {
         middlewares: [...(middlewares || [])],
-        path: path || `/${resolveRoutePath(propertyKey)}`,
+        path: $path,
         method,
       };
 
@@ -165,25 +168,41 @@ export default function (baseRoute = "") {
     };
   };
 
+  const MethodFactory =
+    (method: string) =>
+    (path?: string, middlewares: Middleware[] = []) => {
+      return (target: any, propertyKey: string) => {
+        const handler = target[propertyKey];
+        const $path =
+          path ||
+          (propertyKey.toLowerCase() === "index"
+            ? "/"
+            : `/${resolveRoutePath(propertyKey)}`);
+        const route: Routes = {
+          middlewares: [...(middlewares || [])],
+          path: $path,
+          method,
+        };
+
+        RouterPartials(route, handler, target, propertyKey);
+      };
+    };
+
   /**
    * This decorator is for the get method
    * @param path string
    * @param middlewares
    * @returns
    */
-  const Get = (path?: string, middlewares: Middleware[] = []) => {
-    return (target: any, propertyKey: string) => {
-      const handler = target[propertyKey];
+  const Get = MethodFactory("get");
 
-      const route: Routes = {
-        middlewares: [...middlewares],
-        path: path || `/${resolveRoutePath(propertyKey)}`,
-        method: "get",
-      };
-
-      RouterPartials(route, handler, target, propertyKey);
-    };
-  };
+  /**
+   * This decorator is for the get method
+   * @param path string
+   * @param middlewares
+   * @returns
+   */
+  const Delete = MethodFactory("delete");
 
   /**
    * This decorator is for the POST method
@@ -191,19 +210,7 @@ export default function (baseRoute = "") {
    * @param middlewares
    * @returns
    */
-  const Post = (path?: string, middlewares: Middleware[] = []) => {
-    return (target: any, propertyKey: string) => {
-      const handler = target[propertyKey];
-
-      const route: Routes = {
-        middlewares: [...middlewares],
-        path: path || `/${resolveRoutePath(propertyKey)}`,
-        method: "post",
-      };
-
-      RouterPartials(route, handler, target, propertyKey);
-    };
-  };
+  const Post = MethodFactory("post");
 
   /**
    * This decorator is for the PATCH method
@@ -211,19 +218,7 @@ export default function (baseRoute = "") {
    * @param middlewares
    * @returns
    */
-  const Patch = (path?: string, middlewares: Middleware[] = []) => {
-    return (target: any, propertyKey: string) => {
-      const handler = target[propertyKey];
-
-      const route: Routes = {
-        middlewares: [...middlewares],
-        path: path || `/${resolveRoutePath(propertyKey)}`,
-        method: "patch",
-      };
-
-      RouterPartials(route, handler, target, propertyKey);
-    };
-  };
+  const Patch = MethodFactory("patch");
 
   /**
    * This decorator is for the PUT method
@@ -231,19 +226,7 @@ export default function (baseRoute = "") {
    * @param middlewares
    * @returns
    */
-  const Put = (path?: string, middlewares: Middleware[] = []) => {
-    return (target: any, propertyKey: string) => {
-      const handler = target[propertyKey];
-
-      const route: Routes = {
-        middlewares: [...middlewares],
-        path: path || `/${resolveRoutePath(propertyKey)}`,
-        method: "put",
-      };
-
-      RouterPartials(route, handler, target, propertyKey);
-    };
-  };
+  const Put = MethodFactory("put");
 
   const Controller = (
     routerCreator: (m?: RouterOptions) => Router,
@@ -253,6 +236,7 @@ export default function (baseRoute = "") {
 
     return class _controller {
       static registerRoutes = () => RegisterRoutes(router);
+      static Success = Success
     };
   };
 
@@ -263,6 +247,7 @@ export default function (baseRoute = "") {
     Controller,
     AddRoute,
     Success,
+    Delete,
     Patch,
     Post,
     Put,
