@@ -1,13 +1,11 @@
 import {
   Request,
-  RequestHandler,
-  Response,
   Router,
   RouterOptions,
 } from "express";
 import { Middleware } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
-import { isAsync, resolveRoutePath } from "../utils";
+import { resolveRoutePath } from "../utils";
 
 interface ClassConstructor {
   new (...args: any[]): {};
