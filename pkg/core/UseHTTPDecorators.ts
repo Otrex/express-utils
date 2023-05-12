@@ -1,0 +1,243 @@
+import {
+  Request,
+  RequestHandler,
+  Response,
+  Router,
+  RouterOptions,
+} from "express";
+import { Middleware } from "../types";
+import { _APIResponse, success } from "./ApiResponse";
+import { isAsync, resolveRoutePath } from "../utils";
+
+interface ClassConstructor {
+  new (...args: any[]): {};
+}
+type KeyOf<T> = keyof T;
+
+type RequestAttrs = KeyOf<Request>;
+
+type UseHandler = {
+  path?: string;
+  handlers: Middleware;
+};
+
+type SupportedMethods = "get" | "all" | "post" | "put" | "delete" | "patch";
+interface GlobalMiddlewareOptions {
+  basePath: string;
+  use: (UseHandler | Middleware)[];
+}
+type ParameterConfig = {
+  index: number;
+  action: string;
+  runner?: Function;
+};
+
+type RouteValue = {
+  name: string;
+  method: SupportedMethods;
+  path: string;
+  middlewares: Middleware[];
+  parametersConfig: Array<ParameterConfig>;
+};
+
+type Routes = Record<string, RouteValue>;
+
+export default function () {
+  let $$target: any;
+  let $$globals: GlobalMiddlewareOptions = {
+    basePath: "/",
+    use: [],
+  };
+
+  const $$routes: Routes = {};
+
+  function Controller(options: Partial<GlobalMiddlewareOptions> = {}) {
+    return <T extends ClassConstructor>(constructor: T) => {
+      $$target = constructor;
+      $$globals = {
+        ...$$globals,
+        ...options,
+        use: [...$$globals.use, ...(options.use || [])],
+      };
+      return class extends constructor {};
+    };
+  }
+
+  const BaseController = (routerCreator: (m?: RouterOptions) => Router) => {
+    return class _controller {
+      success = success;
+      router:Router;
+
+      static register() {
+        return RegisterRoutes(routerCreator);
+      }
+    };
+  };
+
+  function $$MethodDecoratorFactory(method: SupportedMethods) {
+    return function (path?: string) {
+      return function (
+        target: any,
+        key: string,
+        descriptor: PropertyDescriptor
+      ) {
+        const originalMethod = descriptor.value;
+        descriptor.value = function (...args: any[]) {
+          return originalMethod.apply(this, args);
+        };
+
+        $$routes[key] = {
+          ...($$routes[key] || {}),
+          middlewares: [],
+          name: key,
+          method: "get",
+          path: path || `/${resolveRoutePath(key)}`,
+        };
+
+        return descriptor;
+      };
+    };
+  }
+
+  const Http = {
+    Get: $$MethodDecoratorFactory("get"),
+    Put: $$MethodDecoratorFactory("put"),
+    Post: $$MethodDecoratorFactory("post"),
+    Patch: $$MethodDecoratorFactory("patch"),
+    Delete: $$MethodDecoratorFactory("delete"),
+    Middlewares,
+  };
+
+  function Middlewares(middlewares: Middleware[]) {
+    return function (target: any, key: string, descriptor: PropertyDescriptor) {
+      $$routes[key] = {
+        ...($$routes[key] || {}),
+        middlewares,
+      };
+
+      return descriptor;
+    };
+  }
+
+  function $$ParameterDecoratorFactory(action: string, runner?: Function) {
+    return function (target: any, key: string, index: number) {
+      $$routes[key] = {
+        ...$$routes[key],
+        parametersConfig: [
+          ...(($$routes[key] && $$routes[key].parametersConfig) || []),
+          { index, action, runner },
+        ],
+      };
+    };
+  }
+
+  const $$SubRequestParameterDecoratorFactory = (
+    attr: RequestAttrs,
+    field?: string
+  ) => {
+    return field
+      ? $$ParameterDecoratorFactory("runner-req", (req: Request) => {
+          return req[attr][field];
+        })
+      : $$ParameterDecoratorFactory("runner-req", (req: Request) => {
+          return req[attr];
+        });
+  };
+
+  const Req = $$ParameterDecoratorFactory("request");
+  const Res = $$ParameterDecoratorFactory("response");
+  const Next = $$ParameterDecoratorFactory("next");
+  const Params = (field?: string) =>
+    $$SubRequestParameterDecoratorFactory("params", field);
+  const Body = (field?: string) =>
+    $$SubRequestParameterDecoratorFactory("body", field);
+  const Query = (field?: string) =>
+    $$SubRequestParameterDecoratorFactory("query", field);
+
+  /**
+   * this 
+   * @param cb 
+   * @returns 
+   */
+  const Pipe = (cb: Function) => $$ParameterDecoratorFactory("pipe", cb);
+
+  const P = {
+    Req,
+    Res,
+    Next,
+    Params,
+    Pipe,
+    Body,
+    Query,
+  };
+
+  function RegisterRoutes(routerCreator: (m?: RouterOptions) => Router) {
+    const wrapperRouter = routerCreator();
+    const router = routerCreator();
+
+    const $target = new $$target();
+    $target.router = wrapperRouter;
+
+    const resolver = (
+      dparams: ParameterConfig,
+      ctx: Record<string, any>,
+      arg: any
+    ) => {
+      if (dparams.action in ctx) return ctx[dparams.action];
+      if (dparams.action === "pipe")
+        return dparams.runner && dparams.runner(arg);
+      if (dparams.action === "runner-req")
+        return dparams.runner && dparams.runner(ctx.request);
+    };
+
+    Object.values($$routes).forEach((d) => {
+      router[d.method](
+        d.path,
+        ...([
+          ...d.middlewares,
+          async (request, response, next) => {
+            try {
+              const ctx = { request, response, next };
+              const args: any[] = [request, response, next];
+
+              d.parametersConfig.forEach((param) => {
+                args[param.index] = resolver(param, ctx, args[param.index]);
+              });
+
+              if (d.parametersConfig.length) args.push(ctx);
+              else args.unshift(ctx)
+
+              const result = await $target[d.name](...args);
+              if (!response.headersSent) return success(response, result);
+            } catch (e) {
+              next(e);
+            }
+          },
+        ] as Middleware[])
+      );
+    });
+
+    $$globals.use.push({
+      path: ($$globals && $$globals.basePath) || "/",
+      handlers: router,
+    });
+
+    $$globals.use.forEach((m) => {
+      if ("path" in m) wrapperRouter.use(m.path!, m.handlers);
+      else wrapperRouter.use(m as Middleware);
+    });
+
+    return wrapperRouter;
+  }
+
+  return {
+    P,
+    Http,
+    ...Http,
+    ...P,
+    Middlewares,
+    BaseController,
+    Controller,
+    RegisterRoutes,
+  };
+}

@@ -102,6 +102,19 @@ export default class _App<
     return this._httpServer;
   }
 
+  /**
+   * Starts the HTTP server.
+   *
+   * @template T - The type of the application plugin.
+   * @param {RunOptions<T>} [options={}] - The options for the HTTP server.
+   * @param {number | string} [options.port=8000] - The port number to listen on.
+   * @param {(port: number) => void} [options.callback] - A function to be called when the server starts listening.
+   * @param {(params: {httpServer: http.Server, plugin: T, self: HttpServer<T>}) => Promise<void>} [options.setup] - A function that sets up the HTTP server.
+   * @param {(httpServer: http.Server) => void} [options.shutdown] - A function that shuts down the HTTP server.
+   * @param {(params: {httpServer: http.Server, plugin: T, self: HttpServer<T>}) => Promise<void>} [options.afterSetup] - A function that runs after the server has started.
+   * @param {boolean} [options.forceStart=false] - Whether to force the server to start on a different port if the specified port is already in use.
+   * @param {Array<any>} [options.httpListenOptions=[]] - Options to pass to the `listen` method of the HTTP server.
+   */
   run(options: RunOptions<T> = {}) {
     const {
       port,

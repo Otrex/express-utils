@@ -12,6 +12,7 @@ export { default as generators } from "./core/Generators";
 export { default as Documentation } from "./core/Documentation";
 export { default as APIError } from "./core/ApiError";
 export { default as useDecorator } from "./core/UseDecorators";
+export { default as useHttpDecorator } from "./core/UseHTTPDecorators";
 export { default as Logger } from "./core/Logger";
 export { default as Router } from "./core/Router";
 export { default as App } from "./core/App";

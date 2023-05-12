@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import http from "http";
 import _App from "../core/App";
 
@@ -10,6 +10,12 @@ export interface Routes {
 export interface IAddRoute extends Routes {
   validator?: any;
   useAsyncHandler?: boolean;
+}
+
+export interface Context<T = Request> {
+  request: T;
+  response: Response;
+  next: NextFunction;
 }
 
 export type Middleware = RequestHandler | RequestHandler[];

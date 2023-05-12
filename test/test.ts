@@ -1,35 +1,38 @@
-// import { useDecorator } from './../src/index';
-// import express from 'express';
-// // Async Handler no =t yet working
-// const app = express();
+import express, { NextFunction, Request, Response, Router } from "express";
+import { App, RegisterController, useDecorator } from "../pkg";
 
-// const { Controller, globalMiddleware, asyncHandler } = useDecorator();
+const { Controller, Get, RegisterRoutes, GlobalMiddleware } = useDecorator();
 
-// @globalMiddleware('/ok')
-// class BaseController extends Controller {
-//   @BaseController.addRoute({ method: 'get', path: '/omit', useAsyncHandler: true, validator: (req: any) => { } })
-//   async hello (req: any, res: any, next: any) {
-//     console.log(req);
-//     res.send('Ok')
-//   }
+GlobalMiddleware({
+  path: "/",
+});
+class BaseController {
+  t: string = " red";
+  constructor() {
+    this.t = "Green";
+  }
+  @Get()
+  index(_: any, res: Response) {
+    return res.send("Hello World" + this.t);
+  }
+}
 
-//   @BaseController.addRoute({ method: 'get' })
-//   helloMe(req: any, res: any, next: any) {
-//     res.send('OkMe')
-//   }
-// }
+// TODO; handle when express is passed without the calling
+// The App is buggy, shutdown is not working properly
+const app = App.createServer<Express.Application>(express());
+app.pluginConfig({
+  use: [
+    (req: Request, res: Response, next: NextFunction) => {
+      console.log("Visiting", req.url);
+      next();
+    },
+    ["/", RegisterRoutes(Router())],
+  ],
+});
 
-// app.get('/kk', asyncHandler((req: any, res: any, next: any) => {
-//   throw new Error('hello Error')
-// }))
-
-// app.use((err: any, req: any, res: any, next:any) => {
-//   res.send(err.message);
-// })
-// app.use(BaseController.registerRoutes(express.Router()))
-
-// app.listen(8011, () => console.log("Working"))
-
-// import { Config } from "../pkg";
-
-// Config.createConfig({})
+app.run({
+  port: 4000,
+  shutdown: (ser) => {
+    return () => process.exit(0);
+  },
+});

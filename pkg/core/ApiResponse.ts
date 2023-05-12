@@ -13,6 +13,20 @@ export class _APIResponse<T> {
   }
 }
 
+export function success<T extends Record<string, any>>(
+  res: Response,
+  data?: T,
+  status?: number
+) {
+  const $data = {
+    state: "success",
+    timestamp: Date.now(),
+    ...(data || {}),
+  };
+
+  const responder = new _APIResponse(status || 200, $data).send(res);
+}
+
 export function _paginateResponse<T>(
   data: [T, number],
   page: number,

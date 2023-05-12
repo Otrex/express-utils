@@ -7,6 +7,7 @@ import {
 } from "express";
 import { IAddRoute, Middleware, Routes } from "../types";
 import { _APIResponse } from "./ApiResponse";
+import { asyncWrapper, isAsync, resolveRoutePath, wrapper } from "../utils";
 
 interface ClassConstructor {
   new (...args: any[]): {};
@@ -22,38 +23,13 @@ type GlobalOptions = {
   middlewares?: Middleware[];
   use?: UseHandler[];
 };
-const resolveRoutePath = (path: string) =>
-  path
-    .split(/(?=[A-Z])/)
-    .join("-")
-    .toLowerCase();
-const isAsync = (func: Function) => func.constructor.name === "AsyncFunction";
 
-const asyncWrapper =
-  (handler: any) =>
-  async (...args: Array<Request | Response | NextFunction>) => {
-    try {
-      await handler(...args);
-    } catch (error) {
-      const next = args[args.length - 1] as NextFunction;
-      next(error);
-    }
-  };
-const wrapper =
-  (handler: any) =>
-  (...args: Array<Request | Response | NextFunction>) => {
-    try {
-      return handler.apply(null, args);
-    } catch (error) {
-      const next = args[args.length - 1] as NextFunction;
-      next(error);
-    }
-  };
 /**
- * This is the `useDecorate` function that creates decorators for the controller
- * @param baseRoute string
- * @returns - { Controller, globalMiddleware, routes, registerRoutes, asyncHandler, addRoute, success }
- */
+  A Controller Factory function that returns a router with added routes and middlewares.
+  @function
+  @param {string} [baseRoute=""] - Base route for all the routes inside the controller.
+  @returns {{ Controller, globalMiddleware, routes, registerRoutes, asyncHandler, addRoute, success }} - An object containing functions and properties for adding routes and middlewares.
+*/
 export default function (baseRoute = "") {
   const _globalMiddleware: Middleware[] = [];
   const _routes: { [key: string]: Routes[] } = {};
@@ -96,8 +72,8 @@ export default function (baseRoute = "") {
 
   /**
    * This registers all the routes created
-   * @param router express.Router
-   * @returns express.Router
+   * @param {express.Router} router
+   * @returns {express.Router}
    */
   const RegisterRoutes = (router: Router) => {
     if (_useHandlers.length)
@@ -111,8 +87,10 @@ export default function (baseRoute = "") {
     Object.entries(_routes).forEach(([_, routes]) => {
       routes.forEach((route) => {
         (router as any)
-          .route(`${_baseRoute}${route.path}`)
+          .route(`${_baseRoute}${route.path}`.replace("//", "/"))
           [route.method](...route.middlewares!);
+
+        console.log("Registered::", route.path, route.method);
       });
     });
 
@@ -136,21 +114,23 @@ export default function (baseRoute = "") {
     };
 
   /**
-   * This is used to add the routes
-   * @param routeParams {
-   *  validator?: Middleware;
-   *  useAsyncHandler?: boolean,
-   *  method: string,
-   *  path?: string,
-   *  middlewares?: Middleware[]
-   * }
-   * @returns void
+   *  Adds a new route to the server.
+   *  @param {Object} routeParams - Route parameters.
+   *  @param {Function} routeParams.validator - Optional validator middleware.
+   *  @param {boolean} routeParams.useAsyncHandler - Whether to use async handler.
+   *  @param {string} routeParams.method - HTTP method of the route.
+   *  @param {string} routeParams.path - URL path of the route.
+   *  @param {Array<Function>} routeParams.middlewares - Optional array of middlewares.
+   *  @returns {void}
    */
   const AddRoute = (routeParams: IAddRoute) => {
-    const { method, path, middlewares, validator, useAsyncHandler } =
-      routeParams;
-    return (target: any, propertyKey: string) => {
-      const handler = target[propertyKey];
+    const { method, path, middlewares, validator } = routeParams;
+    return (
+      target: any,
+      propertyKey: string,
+      descriptor: PropertyDescriptor
+    ) => {
+      const handler = descriptor.value;
 
       const $path =
         path ||
@@ -171,8 +151,14 @@ export default function (baseRoute = "") {
   const MethodFactory =
     (method: string) =>
     (path?: string, middlewares: Middleware[] = []) => {
-      return (target: any, propertyKey: string) => {
-        const handler = target[propertyKey];
+      return (
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor
+      ) => {
+        const handler = descriptor.value;
+        console.log(target);
+
         const $path =
           path ||
           (propertyKey.toLowerCase() === "index"
@@ -189,43 +175,50 @@ export default function (baseRoute = "") {
     };
 
   /**
-   * This decorator is for the get method
-   * @param path string
-   * @param middlewares
-   * @returns
-   */
+
+    This decorator is for the GET method.
+    @function
+    @param {string} path - URL path of the route.
+    @param {Array<Function>} middlewares - Optional array of middlewares.
+    @returns {void}
+  */
   const Get = MethodFactory("get");
 
   /**
-   * This decorator is for the get method
-   * @param path string
-   * @param middlewares
-   * @returns
-   */
+
+    This decorator is for the DELETE method.
+    @function
+    @param {string} path - URL path of the route.
+    @param {Array<Function>} middlewares - Optional array of middlewares.
+    @returns {void}
+  */
   const Delete = MethodFactory("delete");
 
   /**
-   * This decorator is for the POST method
-   * @param path string
-   * @param middlewares
-   * @returns
-   */
+    This decorator is for the POST method.
+    @function
+    @param {string} path - URL path of the route.
+    @param {Array<Function>} middlewares - Optional array of middlewares.
+    @returns {void}
+  */
   const Post = MethodFactory("post");
 
   /**
-   * This decorator is for the PATCH method
-   * @param path string
-   * @param middlewares
-   * @returns
-   */
+    This decorator is for the PATCH method.
+    @function
+    @param {string} path - URL path of the route.
+    @param {Array<Function>} middlewares - Optional array of middlewares.
+    @returns {void}
+  */
   const Patch = MethodFactory("patch");
 
   /**
-   * This decorator is for the PUT method
-   * @param path string
-   * @param middlewares
-   * @returns
-   */
+    This decorator is for the PUT method.
+    @function
+    @param {string} path - URL path of the route.
+    @param {Array<Function>} middlewares - Optional array of middlewares.
+    @returns {void}
+  */
   const Put = MethodFactory("put");
 
   const Controller = (
@@ -235,8 +228,8 @@ export default function (baseRoute = "") {
     const router = routerCreator(options);
 
     return class _controller {
-      static registerRoutes = () => RegisterRoutes(router);
-      static Success = Success
+      registerRoutes = () => RegisterRoutes(router);
+      Success = Success;
     };
   };
 
