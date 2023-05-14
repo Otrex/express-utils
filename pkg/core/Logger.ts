@@ -1,6 +1,6 @@
-import path from "path";
+import { parsePathToScope } from "../utils";
 
-const colours = {
+export const colours = {
   reset: "\x1b[0m",
   bright: "\x1b[1m",
   dim: "\x1b[2m",
@@ -11,6 +11,7 @@ const colours = {
 
   fg: {
     black: "\x1b[30m",
+    default: "\x1b[0m",
     red: "\x1b[31m",
     green: "\x1b[32m",
     yellow: "\x1b[33m",
@@ -33,56 +34,52 @@ const colours = {
   },
 };
 
-export type FGColor = keyof typeof colours.fg;
+export type FGColor = keyof typeof colours.fg & typeof colours["reset"];
 export type Level = "error" | "warning" | "info" | string;
-export default class _Logger {
-  static _DEFAULT_SCOPE = "app";
-  specifiedColor: string;
-  console: any;
-
-  static Log = new _Logger();
-
-  static use(scope?: string) {
-    console.log(">>", scope);
-
-    _Logger.Log = new _Logger(scope);
-  }
-
-  static getLogger(scope?: string) {
-    return new _Logger(scope);
-  }
-
-  static parsePathToScope(filepath: string) {
-    if (filepath.indexOf(path.sep) >= 0) {
-      filepath = filepath.replace(process.cwd(), "");
-      filepath = filepath.replace(`${path.sep}src${path.sep}`, "");
-      filepath = filepath.replace(`${path.sep}dist${path.sep}`, "");
-      filepath = filepath.replace(".ts", "");
-      filepath = filepath.replace(".js", "");
-      filepath = filepath.replace(path.sep, ":");
-    }
-    return filepath;
-  }
-
+export class _Logger {
+  DEFAULT_SCOPE = "log"
+  specifiedColor?: string;
+  defaultColor: string;
+  #console: any;
   #scope: string;
+  logDebug: boolean;
 
-  constructor(scope?: string, _console?: any) {
-    this.#scope = _Logger.parsePathToScope(
-      scope ? scope : _Logger._DEFAULT_SCOPE
-    );
-
-    this.console = _console || console;
+  constructor(scope?: string, $console?: any) {
+    this.setScope(scope);
+    this.defaultColor = colours.reset;
+    this.#console = $console || console;
   }
 
-  setScope(scope: string) {
-    this.#scope = _Logger.parsePathToScope(
-      scope ? scope : _Logger._DEFAULT_SCOPE
+  setLogDebug(state: boolean) {
+    this.logDebug = state;
+  }
+
+  setDefaultColor(color: FGColor) {
+    this.defaultColor = colours.fg[color]
+  }
+
+  setScopeToDefault() {
+    return this.setScope();
+  }
+
+  setScope(scope?: string) {
+    this.#scope = parsePathToScope(
+      scope ? scope : this.DEFAULT_SCOPE
     );
   }
 
   useColor(color: FGColor) {
     this.specifiedColor = colours.fg[color];
     return this;
+  }
+
+  color(color: FGColor) {
+    this.specifiedColor = colours.fg[color];
+    return this;
+  }
+
+  log(message: string, ...args: any[]) {
+    this.#log("log", message, args);
   }
 
   debug(message: string, ...args: any[]) {
@@ -104,35 +101,64 @@ export default class _Logger {
   #log(level: Level, message: string, args: any[]) {
     if (message) {
       let output = [
-        `${this.#formatScope()} ${message}`,
-        args.length ? args : undefined,
+        `[${this.#scope}] ${message}`,
+        ...(args.length ? args : []),
         colours.reset,
       ].filter((d) => !!d);
 
-      if (output[0]!.includes("[app] ")) {
-        output = [colours.fg.green, ...output];
-      }
       switch (level) {
         case "error":
-          console.error(this.specifiedColor || colours.fg.red, ...output);
+          this.#console.error(this.specifiedColor || colours.fg.red, ...output);
           break;
 
         case "warn":
-          console.warn(this.specifiedColor || colours.fg.yellow, ...output);
+          this.#console.warn(this.specifiedColor || colours.fg.yellow, ...output);
           break;
 
         case "info":
-          console.log(this.specifiedColor || colours.fg.blue, ...output);
+          this.#console.log(this.specifiedColor || colours.fg.blue, ...output);
+          break;
+
+        case "debug":
+          if (this.logDebug) this.#console.log(this.specifiedColor || this.defaultColor, ...output);
+          break;
+        
+        case "log":
+          if (this.logDebug) this.#console.log(this.specifiedColor || this.defaultColor, ...output);
           break;
 
         default:
-          console.log(this.specifiedColor || colours.reset, ...output);
+          this.#console.log(this.specifiedColor || this.defaultColor, ...output);
           break;
       }
+      this.specifiedColor = undefined;
     }
   }
+}
 
-  #formatScope() {
-    return `[${this.#scope}]`;
-  }
+type LoggerOptions<T> = {
+  scope?: string, 
+  logger?: T, 
+  color: FGColor,
+  logDebug: boolean
+}
+interface ILogger {
+  log(message?: any, ...optionalParams: any[]): void;
+  info(message?: any, ...optionalParams: any[]): void;
+  warn(message?: any, ...optionalParams: any[]): void;
+  error(message?: any, ...optionalParams: any[]): void;
+}
+
+const defaultOptions: LoggerOptions<Console> = {
+  logger: console,
+  color: "default",
+  logDebug: true,
+}
+
+export default function<T extends ILogger>(options: Partial<LoggerOptions<T>> = {}) {
+  const $options = { ...defaultOptions, ...options }
+  const logger = new _Logger($options.scope, $options.logger);
+  logger.logDebug = $options.logDebug;
+  if ($options.color) logger.setDefaultColor($options.color)
+  return logger;
 }

@@ -1,9 +1,16 @@
 import express, { NextFunction, Request, Response, Router } from "express";
-import { APIError, App, RegisterController, useDecorator } from "../pkg";
-import DecoratorV2 from "../pkg/core/UseHTTPDecorators";
-import { Context } from "../pkg/types";
+import { APIError, createLogger, useHttpDecorator } from "../pkg";
 
-const { Controller, BaseController, ...D } = DecoratorV2();
+import { Context, IAfterEach } from "../pkg/types";
+import createServer from "../pkg/core/Server";
+import Server from "../pkg/core/Server";
+import mount from "../pkg/core/LoadController";
+
+const { Controller, AfterEach, BaseController, ...D } = useHttpDecorator();
+const logger = createLogger({
+  scope: __filename,
+  logDebug: false
+})
 
 const M1 = (req: Request, res: Response, next: NextFunction) => {
   console.log("Visiting", req.url);
@@ -43,24 +50,63 @@ const pipe = (data: Record<string, any>) => {
   return { data, ["key"]: "red" };
 };
 
+const after: IAfterEach = ({ name }) => {
+  console.log(name);
+};
+
+class TextService {
+  getNumbers() {
+    return [1, 3, 5];
+  }
+}
+
+@AfterEach(after)
 @Controller()
 class TextController extends BaseController(Router) {
   t: string = " pink";
+  service: TextService;
+
+  constructor() {
+    super();
+    this.service = new TextService();
+  }
 
   @D.Middlewares([M1])
-  @D.Get("/hello")
-  index(@D.Pipe(pipe) @D.Query() body: any, ctx: Context) {
+  @D.Get()
+  ben(@D.Pipe(pipe) @D.Query() body: any, ctx: Context) {
     // throw new APIError("Not implemented", 400);
     return { result: this.t, body };
+  }
+
+  @D.Middlewares([M1])
+  @D.Post("/:id")
+  index(
+    @D.Pipe(pipe) @D.Body() body: any,
+    @D.Pipe(pipe) @D.Pipe((d: any) => parseInt(d)) @D.Params("id") id: number,
+    ctx: Context
+  ) {
+    // throw new APIError("Not implemented", 400);
+
+    // console.log(ctx);
+
+    return ctx.response
+      .status(201)
+      .send({ result: this.t, body, id, numbers: this.service.getNumbers() });
   }
 }
 
 const app = express();
-app.use(M1)
 
-app.use("/", TextController.register())
-
+app.use(M1);
+app.use(express.json());
+app.use("/", mount([TextController]));
 app.use(GeneralMiddleware.ErrorHandler);
-app.listen(4000, () => {
-  console.log("Server started")
-})
+
+Server.start({
+  force: true,
+  expressApp: app,
+  onStart: ({ port }) => {
+    logger.color('red').log(`xxPort Started on ${port}`)
+    logger.info(`Port Started on ${port}`);
+  }
+});

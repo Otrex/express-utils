@@ -4,7 +4,7 @@ import Router from "./Router";
 import { Logger } from "..";
 import { PartialsSetupFunction, RunOptions, SetupFunction } from "../types";
 
-const logger = Logger.getLogger("app.server");
+const logger = new Logger("app.server");
 
 const defaultOptions = {
   port: 3000,

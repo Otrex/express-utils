@@ -1,16 +1,9 @@
-import {
-  Request,
-  Router,
-  RouterOptions,
-} from "express";
-import { Middleware } from "../types";
+import { Request, Router, RouterOptions } from "express";
+import { ClassConstructor, IAfterEach, KeyOf, Middleware } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
 import { resolveRoutePath } from "../utils";
-
-interface ClassConstructor {
-  new (...args: any[]): {};
-}
-type KeyOf<T> = keyof T;
+import { colours } from "./Logger";
+import { log } from "console";
 
 type RequestAttrs = KeyOf<Request>;
 
@@ -20,8 +13,10 @@ type UseHandler = {
 };
 
 type SupportedMethods = "get" | "all" | "post" | "put" | "delete" | "patch";
+
 interface GlobalMiddlewareOptions {
   basePath: string;
+  after: IAfterEach;
   use: (UseHandler | Middleware)[];
 }
 type ParameterConfig = {
@@ -40,10 +35,26 @@ type RouteValue = {
 
 type Routes = Record<string, RouteValue>;
 
+const printTopic = (
+  route: RouteValue,
+  constructorName: string,
+  basePath: string
+) => {
+  const { path, method, name } = route;
+  console.log(
+    colours.fg.green,
+    `${constructorName}.${name} => ${method.toUpperCase()} ${
+      basePath === "/" ? "" : basePath
+    }${path}`,
+    colours.fg.white
+  );
+};
+
 export default function () {
   let $$target: any;
   let $$globals: GlobalMiddlewareOptions = {
     basePath: "/",
+    after: () => {},
     use: [],
   };
 
@@ -61,12 +72,22 @@ export default function () {
     };
   }
 
+  function AfterEach(handler: IAfterEach) {
+    return <T extends ClassConstructor>(constructor: T) => {
+      $$globals = {
+        ...$$globals,
+        after: handler,
+      };
+      return class extends constructor {};
+    };
+  }
+
   const BaseController = (routerCreator: (m?: RouterOptions) => Router) => {
     return class _controller {
       success = success;
-      router:Router;
+      router: Router;
 
-      static register() {
+      static $register() {
         return RegisterRoutes(routerCreator);
       }
     };
@@ -88,7 +109,7 @@ export default function () {
           ...($$routes[key] || {}),
           middlewares: [],
           name: key,
-          method: "get",
+          method,
           path: path || `/${resolveRoutePath(key)}`,
         };
 
@@ -104,6 +125,7 @@ export default function () {
     Patch: $$MethodDecoratorFactory("patch"),
     Delete: $$MethodDecoratorFactory("delete"),
     Middlewares,
+    Controller,
   };
 
   function Middlewares(middlewares: Middleware[]) {
@@ -153,9 +175,9 @@ export default function () {
     $$SubRequestParameterDecoratorFactory("query", field);
 
   /**
-   * this 
-   * @param cb 
-   * @returns 
+   * this
+   * @param cb
+   * @returns
    */
   const Pipe = (cb: Function) => $$ParameterDecoratorFactory("pipe", cb);
 
@@ -176,6 +198,8 @@ export default function () {
     const $target = new $$target();
     $target.router = wrapperRouter;
 
+    const basePath = ($$globals && $$globals.basePath) || "/";
+
     const resolver = (
       dparams: ParameterConfig,
       ctx: Record<string, any>,
@@ -189,6 +213,7 @@ export default function () {
     };
 
     Object.values($$routes).forEach((d) => {
+      printTopic(d, $$target.name, basePath);
       router[d.method](
         d.path,
         ...([
@@ -196,16 +221,26 @@ export default function () {
           async (request, response, next) => {
             try {
               const ctx = { request, response, next };
-              const args: any[] = [request, response, next];
+              const args: any[] = [];
 
               d.parametersConfig.forEach((param) => {
                 args[param.index] = resolver(param, ctx, args[param.index]);
               });
 
               if (d.parametersConfig.length) args.push(ctx);
-              else args.unshift(ctx)
+              else args.unshift(ctx);
 
               const result = await $target[d.name](...args);
+
+              Promise.all([
+                $$globals.after({
+                  name: d.name,
+                  method: d.method,
+                  controller: $$target.name,
+                  response: result,
+                }),
+              ]).catch(console.error);
+
               if (!response.headersSent) return success(response, result);
             } catch (e) {
               next(e);
@@ -216,7 +251,7 @@ export default function () {
     });
 
     $$globals.use.push({
-      path: ($$globals && $$globals.basePath) || "/",
+      path: basePath,
       handlers: router,
     });
 
@@ -236,6 +271,7 @@ export default function () {
     Middlewares,
     BaseController,
     Controller,
+    AfterEach,
     RegisterRoutes,
   };
 }

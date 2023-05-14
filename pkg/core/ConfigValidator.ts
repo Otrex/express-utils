@@ -30,10 +30,11 @@ export const _validateConfig = <T extends Record<string, any>>(
     });
   });
   if (missingKeys.filter((k) => !optional.includes(k)).length) {
-    Logger.Log.setScope("app.config");
-    Logger.Log.useColor("red");
-    Logger.Log.error("-------------------------------------------------");
-    Logger.Log.error(
+    const logger = new Logger("app.config")
+    
+    logger.useColor("red");
+    logger.error("-------------------------------------------------");
+    logger.error(
       `The following configuration keys are not set: \n\t- ${missingKeys.join(
         "\n\t- "
       )}`
