@@ -69,7 +69,17 @@ export const _createConfig = <T extends GenericConfig>(data: {
   config: T;
 }) => _validateConfig(data.config, data.optional || [], data.exitOnFail);
 
+export const _useConfig = (configOption: {
+  optional?: string[];
+  exitOnFail?: boolean;
+}) => {
+  return <T extends GenericConfig>(config: T) => {
+    return _validateConfig(config, configOption.optional || [], configOption.exitOnFail);
+  }
+}
+
 export default {
   createConfig: _createConfig,
   validateConfig: _validateConfig,
+  useConfig: _useConfig
 };
