@@ -1,4 +1,4 @@
-import { _validateConfig, _createConfig } from "./core/ConfigValidator";
+import { _validateConfig, _createConfig, _useConfig } from "./core/ConfigValidator";
 import { _paginateResponse, _APIResponse } from "./core/ApiResponse";
 import { _Logger } from "./core/Logger";
 
@@ -6,6 +6,7 @@ export const validateConfig = _validateConfig;
 export const createConfig = _createConfig;
 export const paginate = _paginateResponse;
 export const APIResponse = _APIResponse;
+export const useConfig = _useConfig;
 export const Logger = _Logger;
 
 export { default as RegisterController } from "./core/RegisterControllers";
