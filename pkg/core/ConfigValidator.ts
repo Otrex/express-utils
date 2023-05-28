@@ -30,8 +30,8 @@ export const _validateConfig = <T extends Record<string, any>>(
     });
   });
   if (missingKeys.filter((k) => !optional.includes(k)).length) {
-    const logger = new Logger("app.config")
-    
+    const logger = new Logger("app.config");
+
     logger.useColor("red");
     logger.error("-------------------------------------------------");
     logger.error(
@@ -74,12 +74,16 @@ export const _useConfig = (configOption: {
   exitOnFail?: boolean;
 }) => {
   return <T extends GenericConfig>(config: T) => {
-    return _validateConfig(config, configOption.optional || [], configOption.exitOnFail);
-  }
-}
+    return _validateConfig(
+      config,
+      configOption.optional || [],
+      configOption.exitOnFail
+    );
+  };
+};
 
 export default {
   createConfig: _createConfig,
   validateConfig: _validateConfig,
-  useConfig: _useConfig
+  useConfig: _useConfig,
 };

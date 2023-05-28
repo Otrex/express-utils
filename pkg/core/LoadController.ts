@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 interface IController {
-  new (...args: any[]): any
+  new (...args: any[]): any;
   $register: () => Router;
 }
 
@@ -17,9 +17,7 @@ function singleController<T extends IController>(controller: T) {
   }
 }
 
-export default function <T extends IController>(
-  controllers: T[] | T
-): Router {
+export default function <T extends IController>(controllers: T[] | T): Router {
   if (Array.isArray(controllers)) {
     const $router = Router();
     controllers.forEach((ctr) => {

@@ -9,8 +9,8 @@ import mount from "../pkg/core/LoadController";
 const { Controller, AfterEach, BaseController, ...D } = useHttpDecorator();
 const logger = createLogger({
   scope: __filename,
-  logDebug: false
-})
+  logDebug: false,
+});
 
 const M1 = (req: Request, res: Response, next: NextFunction) => {
   console.log("Visiting", req.url);
@@ -106,7 +106,7 @@ Server.start({
   force: true,
   expressApp: app,
   onStart: ({ port }) => {
-    logger.color('red').log(`xxPort Started on ${port}`)
+    logger.color("red").log(`xxPort Started on ${port}`);
     logger.info(`Port Started on ${port}`);
-  }
+  },
 });

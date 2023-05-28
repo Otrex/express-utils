@@ -34,10 +34,10 @@ export const colours = {
   },
 };
 
-export type FGColor = keyof typeof colours.fg & typeof colours["reset"];
+export type FGColor = keyof typeof colours.fg & (typeof colours)["reset"];
 export type Level = "error" | "warning" | "info" | string;
 export class _Logger {
-  DEFAULT_SCOPE = "log"
+  DEFAULT_SCOPE = "log";
   specifiedColor?: string;
   defaultColor: string;
   #console: any;
@@ -55,7 +55,7 @@ export class _Logger {
   }
 
   setDefaultColor(color: FGColor) {
-    this.defaultColor = colours.fg[color]
+    this.defaultColor = colours.fg[color];
   }
 
   setScopeToDefault() {
@@ -63,9 +63,7 @@ export class _Logger {
   }
 
   setScope(scope?: string) {
-    this.#scope = parsePathToScope(
-      scope ? scope : this.DEFAULT_SCOPE
-    );
+    this.#scope = parsePathToScope(scope ? scope : this.DEFAULT_SCOPE);
   }
 
   useColor(color: FGColor) {
@@ -112,7 +110,10 @@ export class _Logger {
           break;
 
         case "warn":
-          this.#console.warn(this.specifiedColor || colours.fg.yellow, ...output);
+          this.#console.warn(
+            this.specifiedColor || colours.fg.yellow,
+            ...output
+          );
           break;
 
         case "info":
@@ -120,15 +121,26 @@ export class _Logger {
           break;
 
         case "debug":
-          if (this.logDebug) this.#console.log(this.specifiedColor || this.defaultColor, ...output);
+          if (this.logDebug)
+            this.#console.log(
+              this.specifiedColor || this.defaultColor,
+              ...output
+            );
           break;
-        
+
         case "log":
-          if (this.logDebug) this.#console.log(this.specifiedColor || this.defaultColor, ...output);
+          if (this.logDebug)
+            this.#console.log(
+              this.specifiedColor || this.defaultColor,
+              ...output
+            );
           break;
 
         default:
-          this.#console.log(this.specifiedColor || this.defaultColor, ...output);
+          this.#console.log(
+            this.specifiedColor || this.defaultColor,
+            ...output
+          );
           break;
       }
       this.specifiedColor = undefined;
@@ -137,11 +149,11 @@ export class _Logger {
 }
 
 type LoggerOptions<T> = {
-  scope?: string, 
-  logger?: T, 
-  color: FGColor,
-  logDebug: boolean
-}
+  scope?: string;
+  logger?: T;
+  color: FGColor;
+  logDebug: boolean;
+};
 interface ILogger {
   log(message?: any, ...optionalParams: any[]): void;
   info(message?: any, ...optionalParams: any[]): void;
@@ -153,12 +165,14 @@ const defaultOptions: LoggerOptions<Console> = {
   logger: console,
   color: "default",
   logDebug: true,
-}
+};
 
-export default function<T extends ILogger>(options: Partial<LoggerOptions<T>> = {}) {
-  const $options = { ...defaultOptions, ...options }
+export default function <T extends ILogger>(
+  options: Partial<LoggerOptions<T>> = {}
+) {
+  const $options = { ...defaultOptions, ...options };
   const logger = new _Logger($options.scope, $options.logger);
   logger.logDebug = $options.logDebug;
-  if ($options.color) logger.setDefaultColor($options.color)
+  if ($options.color) logger.setDefaultColor($options.color);
   return logger;
 }

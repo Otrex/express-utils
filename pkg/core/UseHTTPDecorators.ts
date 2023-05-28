@@ -9,7 +9,7 @@ type RequestAttrs = KeyOf<Request>;
 
 type UseHandler = {
   path?: string;
-  handlers: Middleware;
+  handlers: Middleware | Middleware[];
 };
 
 type SupportedMethods = "get" | "all" | "post" | "put" | "delete" | "patch";
@@ -223,11 +223,11 @@ export default function () {
               const ctx = { request, response, next };
               const args: any[] = [];
 
-              d.parametersConfig.forEach((param) => {
+              d.parametersConfig?.forEach((param) => {
                 args[param.index] = resolver(param, ctx, args[param.index]);
               });
 
-              if (d.parametersConfig.length) args.push(ctx);
+              if (d.parametersConfig?.length) args.push(ctx);
               else args.unshift(ctx);
 
               const result = await $target[d.name](...args);
@@ -256,7 +256,7 @@ export default function () {
     });
 
     $$globals.use.forEach((m) => {
-      if ("path" in m) wrapperRouter.use(m.path!, m.handlers);
+      if ("path" in m) wrapperRouter.use(m.path!, m.handlers as any);
       else wrapperRouter.use(m as Middleware);
     });
 

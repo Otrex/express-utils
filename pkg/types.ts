@@ -6,7 +6,29 @@ import express, {
   Router,
 } from "express";
 import http from "http";
-import _App from "../core/App";
+import _App from "./core/App";
+
+export interface ISender {
+  send(mail: IMail): Promise<void> | void;
+}
+
+export interface ITemplateEngine<T = Record<string, any>> {
+  templates: string[];
+  templatePath: string;
+  render(mail: IMail): void;
+  compile(sources: string): string;
+}
+
+export interface IMail {
+  data?: Record<string, any>;
+  templateContent: string | any;
+}
+
+export type MailerOptions = {
+  sender: ISender;
+  templateEngine?: ITemplateEngine;
+  templatePath: string;
+};
 
 export interface Routes {
   method: string;

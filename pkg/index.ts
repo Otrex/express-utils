@@ -1,4 +1,8 @@
-import { _validateConfig, _createConfig, _useConfig } from "./core/ConfigValidator";
+import {
+  _validateConfig,
+  _createConfig,
+  _useConfig,
+} from "./core/ConfigValidator";
 import { _paginateResponse, _APIResponse } from "./core/ApiResponse";
 import { _Logger } from "./core/Logger";
 
@@ -9,6 +13,7 @@ export const APIResponse = _APIResponse;
 export const useConfig = _useConfig;
 export const Logger = _Logger;
 
+export { default as useMailer } from "./core/UseMailer";
 export { default as RegisterController } from "./core/RegisterControllers";
 export { default as useHttpDecorator } from "./core/UseHTTPDecorators";
 export { default as Documentation } from "./core/Documentation";

@@ -1,4 +1,3 @@
-
 ## Express Utils
 
 This is an express based utility library that provides utility decorators that can be used together with express typescript.
@@ -13,18 +12,17 @@ Routes can be easily setup using:
 import { useHttpDecorator } from "@obisiket1/express-utils";
 import { Router } from "express";
 
-const { BaseController, Http, P } = useHttpDecorator()
+const { BaseController, Http, P } = useHttpDecorator();
 
 @Http.Controller()
 export default class AuthCtrl extends BaseController(Router) {
   @Http.Get("/api")
   index(@P.Query() query: Record<string, any>) {
     return {
-      data: query
-    }
+      data: query,
+    };
   }
 }
-
 ```
 
 That sets up the controller with the route `/api`, which can then be registered to the express app setup using the `mount` function.
@@ -68,9 +66,8 @@ Server.start({
   expressApp: app,
   onStart: ({ port }) => {
     console.log("Server has started @", port);
-  }
+  },
 });
-
 ```
 
 ### Logger
@@ -80,8 +77,8 @@ To set up a logger for a given application use:
 ```javascript
 const logger = createLogger({
   scope: __filename,
-  logDebug: false
-})
+  logDebug: false,
+});
 ```
 
 ### CreateConfig
@@ -95,8 +92,51 @@ import { createConfig } from "@obisiket1/express-utils";
 export default createConfig({
   config: {
     // configuration goes here
+  },
+});
+```
+
+### Mail
+This is still experimental, it provides a way to handle mails on your server;
+Here's an example:
+
+```ts
+class Sender implements ISender {
+  send(mail: IMail): void {
+    console.log("Sent!", mail);
   }
-})
+}
+
+const { Mail } = useMailer({
+  sender: new Sender(),
+  templatePath: path.join(__dirname, "templates"),
+});
+
+Mail.create({
+  template: "text",
+  data: {
+    name: "Treasure",
+    first_name: "Obisike",
+  }
+}).send();
+```
+
+It basically makes your templates readily available using a lightweight template compiler. You can also build your template compiler and add it to the `useMailer` options.
+```ts
+const { Mail } = useMailer({
+  ...,
+  templateEngine: new TemplateEngine(),
+  ...,
+});
+```
+
+The `TemplateEngine` must implement the `ITemplateEngine` interface.
+
+Here is the default option:
+```ts
+const defaultOptions = {
+  templateEngine: new StringEngine(),
+};
 ```
 
 ### UseDecorator
