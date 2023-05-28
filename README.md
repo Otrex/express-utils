@@ -114,6 +114,7 @@ const { Mail } = useMailer({
 
 Mail.create({
   template: "text",
+  subject: "Hello",
   data: {
     name: "Treasure",
     first_name: "Obisike",

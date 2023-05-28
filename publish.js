@@ -46,21 +46,5 @@ const log = `## Version: ${newVersion}\n${latestCommitMessage}\n\n`;
 fs.writeFileSync(`./VERSION.md`, log, { flag: "a" });
 console.log(`Version bumped to ${newVersion}. Log file created.`);
 
-// const fs = require("fs");
-
-// // Read the package.json file
-// const packageJson = JSON.parse(fs.readFileSync("package.json"));
-
-// // Split the version number string into an array of numbers
-// const versionNumbers = packageJson.version.split(".");
-
-// // Increment the last number
-// versionNumbers[versionNumbers.length - 1] = parseInt(versionNumbers[versionNumbers.length - 1]) + 1;
-
-// // Join the numbers back into a string and set the new version number
-// packageJson.version = versionNumbers.join(".");
-
-// // Write the updated package.json file
-// fs.writeFileSync("package.json", JSON.stringify(packageJson, null, 2));
-
-// console.log(`Version updated to ${packageJson.version}`);
+execSync("npm publish")
+console.log("Published!!")

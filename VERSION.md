@@ -9,3 +9,9 @@ added useConfig
 ## Version: 0.0.33
 
 updated the index with the useConfig
+## Version: 0.0.34
+feat: ADDED - Mailer, moved types
+
+## Version: 0.0.35
+feat: ADDED - Mailer, moved types
+
