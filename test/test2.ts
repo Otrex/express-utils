@@ -75,7 +75,8 @@ class TextController extends BaseController(Router) {
   @D.Get()
   ben(@D.Pipe(pipe) @D.Query() body: any, ctx: Context) {
     // throw new APIError("Not implemented", 400);
-    return { result: this.t, body };
+    // return { result: this.t, body };
+    this.respondWith({ result: this.t, body }, 400)
   }
 
   @D.Middlewares([M1])

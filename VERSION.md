@@ -15,3 +15,6 @@ feat: ADDED - Mailer, moved types
 ## Version: 0.0.35
 feat: ADDED - Mailer, moved types
 
+## Version: 0.0.36
+added generator options
+

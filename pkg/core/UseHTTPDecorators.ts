@@ -86,6 +86,7 @@ export default function () {
     return class _controller {
       success = success;
       router: Router;
+      respondWith: (data: any, statusCode?: number) => void;
 
       static $register() {
         return RegisterRoutes(routerCreator);
@@ -230,6 +231,10 @@ export default function () {
 
               if (d.parametersConfig?.length) args.push(ctx);
               else args.unshift(ctx);
+
+              $target.respondWith = (data: any, statusCode: number = 200) => {
+                return success(response, data, statusCode)
+              }
 
               const result = await $target[d.name](...args);
 
