@@ -132,6 +132,7 @@ export default function () {
     return function (target: any, key: string, descriptor: PropertyDescriptor) {
       $$routes[key] = {
         ...($$routes[key] || {}),
+        name: key,
         middlewares,
       };
 
