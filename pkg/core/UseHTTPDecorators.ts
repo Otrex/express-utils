@@ -3,9 +3,9 @@ import { ClassConstructor, IAfterEach, KeyOf, Middleware } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
 import { resolveRoutePath } from "../utils";
 import { colours } from "./Logger";
-import { log } from "console";
 
 type RequestAttrs = KeyOf<Request>;
+type RequestExtractorParams = `${string}.${string}`
 
 type UseHandler = {
   path?: string;
@@ -159,7 +159,7 @@ export default function () {
   ) => {
     return field
       ? $$ParameterDecoratorFactory("runner-req", (req: Request) => {
-          return req[attr][field];
+          return req[attr] && req[attr][field];
         })
       : $$ParameterDecoratorFactory("runner-req", (req: Request) => {
           return req[attr];
@@ -176,6 +176,11 @@ export default function () {
   const Query = (field?: string) =>
     $$SubRequestParameterDecoratorFactory("query", field);
 
+  const ReqExtract = (extract: RequestExtractorParams) => {
+    const [requestField, field] = extract.split(".") as [RequestAttrs, string];
+    return $$SubRequestParameterDecoratorFactory(requestField, field);
+  }
+
   /**
    * this
    * @param cb
@@ -191,6 +196,7 @@ export default function () {
     Pipe,
     Body,
     Query,
+    ReqExtract
   };
 
   function RegisterRoutes(routerCreator: (m?: RouterOptions) => Router) {

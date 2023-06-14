@@ -14,6 +14,9 @@ const logger = createLogger({
 
 const M1 = (req: Request, res: Response, next: NextFunction) => {
   console.log("Visiting", req.url);
+  (req as any).session = {
+    "user": {}
+  }
   next();
 };
 
@@ -60,6 +63,9 @@ class TextService {
   }
 }
 
+
+class SwaggerSpecification {}
+
 @AfterEach(after)
 @Controller()
 class TextController extends BaseController(Router) {
@@ -73,15 +79,15 @@ class TextController extends BaseController(Router) {
 
   @D.Middlewares([M1])
   @D.Get()
-  ben(@D.Pipe(pipe) @D.Query() body: any, ctx: Context) {
+  ben(@D.Pipe(pipe) @D.Query() body: any, @D.ReqExtract('session.user') session: any) {
     // throw new APIError("Not implemented", 400);
     // return { result: this.t, body };
-    this.respondWith({ result: this.t, body }, 400)
+    this.respondWith({ result: this.t, body, session }, 400)
   }
 
   @D.Middlewares([M1])
   @D.Post("/:id")
-  index(
+  index( 
     @D.Pipe(pipe) @D.Body() body: any,
     @D.Pipe(pipe) @D.Pipe((d: any) => parseInt(d)) @D.Params("id") id: number,
     ctx: Context
