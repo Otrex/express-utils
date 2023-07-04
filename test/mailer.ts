@@ -14,6 +14,7 @@ const { Mail } = useMailer({
 });
 
 Mail.create({
+  email: "sender@gmail.com",
   template: "text",
   data: {
     name: "Treasure",

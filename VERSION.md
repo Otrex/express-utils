@@ -24,3 +24,9 @@ feat: added respond with to router handler
 ## Version: 0.0.38
 feat: added respond with to router handler
 
+## Version: 0.0.39
+feat: added ReqExtract decorator
+
+## Version: 0.0.40
+feat: added ReqExtract decorator
+

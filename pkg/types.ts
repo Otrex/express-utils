@@ -20,6 +20,7 @@ export interface ITemplateEngine<T = Record<string, any>> {
 }
 
 export interface IMail {
+  email: string;
   subject?: string;
   data?: Record<string, any>;
   templateContent: string | any;

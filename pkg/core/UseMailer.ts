@@ -71,10 +71,10 @@ class Mail implements IMail {
 
   public templateContent: string;
 
-  constructor(public template: string, public subject?: string, public data?: Record<string, any>) {}
+  constructor(public email: string, public template: string, public subject?: string, public data?: Record<string, any>) {}
 
-  static create(options: { template: string; subject?: string, data?: Record<string, any>}) {
-    return new Mail(options.template, options.subject, options.data)
+  static create(options: { template: string; email: string; subject?: string, data?: Record<string, any>}) {
+    return new Mail(options.email, options.template, options.subject, options.data)
       .getTemplate();
   }
 
