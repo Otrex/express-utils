@@ -126,3 +126,13 @@ const test = {
   "green": "green",
 }
 console.log((test as any)["blue"] && (test as any)["blue"]["red"])
+
+
+class R {
+  m = "Ok"
+  static f() {
+    return new this()
+  }
+}
+
+console.log(R.f());

@@ -1,4 +1,4 @@
-import { Request, Router } from "express";
+import { Request, RequestHandler, Router } from "express";
 import { ClassConstructor, IAfterEach, KeyOf, Middleware, ParameterConfig, RouteValue, SupportedMethods } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
 import { printTopic, resolveRoutePath } from "../utils";
@@ -12,7 +12,7 @@ type UseHandler = {
 };
 
 interface GlobalMiddlewareOptions {
-  basePath: string;
+  basePath?: string;
   after: IAfterEach;
   use: (UseHandler | Middleware)[];
   globalUse: (UseHandler | Middleware)[];
@@ -23,7 +23,6 @@ type Routes = Record<string, RouteValue>;
 export default function () {
   let $$target: any;
   let $$globals: GlobalMiddlewareOptions = {
-    basePath: "/",
     after: () => {},
     use: [],
     globalUse: []
@@ -33,7 +32,6 @@ export default function () {
 
   function Controller(options: Partial<GlobalMiddlewareOptions> = {}) {
     return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
-      $$target = constructor;
       $$globals = {
         ...$$globals,
         ...options,
@@ -165,53 +163,71 @@ export default function () {
   };
 
   const BaseController = class _controller {
+    __basePath?: string;
     success = success;
-    router: Router;
     config: { get: (s: string, _d?: any) => any, [key: string]: any};
     respondWith: (data: any, statusCode?: number) => void;
+    private __router: Router;
 
-    invoke() {}
+    get router() {
+      return this.__router;
+    }
+
+    constructor() {
+      this.__setup();
+      this.__router = Router()
+    }
+
+    __invoke() {}
+    __setup() {}
+
+    __use(...middleware: RequestHandler[]) {
+      this.__router.use(middleware)
+    }
     
     static $register() {
+      $$target = this
       return RegisterRoutes();
     }
   };
 
-  function RegisterRoutes() {
-    const wrapperRouter = Router();
-    const router = Router();
 
+  const resolver = (
+    dparams: ParameterConfig,
+    ctx: Record<string, any>,
+    arg: any
+  ) => {
+    if (dparams.action in ctx) return ctx[dparams.action];
+    if (dparams.action === "pipe")
+      return dparams.runner && dparams.runner(arg);
+    if (dparams.action === "runner-req")
+      return dparams.runner && dparams.runner(ctx.request);
+  };
+
+  function RegisterRoutes() {
+    const $router = Router();
     const $target = new $$target();
-    $target.router = wrapperRouter;
     $target.config = (global as any).config;
 
-    const basePath = ($$globals && $$globals.basePath) || "/";
-
-    const resolver = (
-      dparams: ParameterConfig,
-      ctx: Record<string, any>,
-      arg: any
-    ) => {
-      if (dparams.action in ctx) return ctx[dparams.action];
-      if (dparams.action === "pipe")
-        return dparams.runner && dparams.runner(arg);
-      if (dparams.action === "runner-req")
-        return dparams.runner && dparams.runner(ctx.request);
-    };
+    const basePath = ($$globals && $$globals.basePath) || $target.__basePath || "/";
 
     Object.values($$routes).forEach((d) => {
       printTopic(d, $$target.name, basePath);
-      router[d.method](
+      $target.router[d.method](
         d.path,
         ...([
           ...$$globals.use,
           ...d.middlewares,
           async (request, response, next) => {
             try {
+              
+              $target.respondWith = (data: any, statusCode = 200) => {
+                return success(response, data, statusCode)
+              }
+
               const ctx = { request, response, next };
               const args: any[] = [];
 
-              await $target.invoke()
               d.parametersConfig?.forEach((param) => {
                 args[param.index] = resolver(param, ctx, args[param.index]);
               });
@@ -219,11 +235,8 @@ export default function () {
               if (d.parametersConfig?.length) args.push(ctx);
               else args.unshift(ctx);
 
-              $target.respondWith = (data: any, statusCode: number = 200) => {
-                return success(response, data, statusCode)
-              }
-
               const result = await $target[d.name](...args);
+              await $target.__invoke(result)
 
               Promise.all([
                 $$globals.after({
@@ -249,13 +262,13 @@ export default function () {
     // });
 
     $$globals.globalUse.forEach((m) => {
-      if ("path" in m) wrapperRouter.use(m.path!, m.handlers as any);
-      else wrapperRouter.use(m as Middleware);
+      if ("path" in m) $router.use(m.path!, m.handlers as any);
+      else $router.use(m as Middleware);
     });
 
-    wrapperRouter.use(basePath, router);
+    $router.use(basePath, $target.router);
 
-    return wrapperRouter;
+    return $router;
   }
 
   return {

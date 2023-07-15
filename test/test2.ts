@@ -66,15 +66,13 @@ class TextService {
 
 class SwaggerSpecification {}
 
-@AfterEach(after)
-@Controller()
 class TextController extends BaseController {
-  t: string = " pink";
   service: TextService;
 
-  constructor() {
-    super();
-    this.service = new TextService();
+  __setup() {
+    this.__use(M1)
+    this.__basePath = "/services";
+    this.service = new TextService()
   }
 
   @D.Middlewares([M1])
@@ -82,7 +80,7 @@ class TextController extends BaseController {
   ben(@D.Pipe(pipe) @D.Query() body: any, @D.ReqExtract('session.user') session: any) {
     // throw new APIError("Not implemented", 400);
     // return { result: this.t, body };
-    this.respondWith({ result: this.t, body, session }, 400)
+    this.respondWith({ body, session }, 400)
   }
 
   @D.Middlewares([M1])
