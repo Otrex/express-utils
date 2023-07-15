@@ -15,6 +15,7 @@ interface GlobalMiddlewareOptions {
   basePath: string;
   after: IAfterEach;
   use: (UseHandler | Middleware)[];
+  globalUse: (UseHandler | Middleware)[];
 }
 
 type Routes = Record<string, RouteValue>;
@@ -25,6 +26,7 @@ export default function () {
     basePath: "/",
     after: () => {},
     use: [],
+    globalUse: []
   };
 
   const $$routes: Routes = {};
@@ -85,6 +87,7 @@ export default function () {
     Patch: $$MethodDecoratorFactory("patch"),
     Delete: $$MethodDecoratorFactory("delete"),
     Middlewares,
+    Use: Middlewares,
     Controller,
   };
 
@@ -140,6 +143,8 @@ export default function () {
     return $$SubRequestParameterDecoratorFactory(requestField, field);
   }
 
+  const User = ReqExtract("session.user");
+
   /**
    * this
    * @param cb
@@ -155,6 +160,7 @@ export default function () {
     Pipe,
     Body,
     Query,
+    User,
     ReqExtract
   };
 
@@ -164,6 +170,8 @@ export default function () {
     config: { get: (s: string, _d?: any) => any, [key: string]: any};
     respondWith: (data: any, statusCode?: number) => void;
 
+    invoke() {}
+    
     static $register() {
       return RegisterRoutes();
     }
@@ -196,12 +204,14 @@ export default function () {
       router[d.method](
         d.path,
         ...([
+          ...$$globals.use,
           ...d.middlewares,
           async (request, response, next) => {
             try {
               const ctx = { request, response, next };
               const args: any[] = [];
 
+              await $target.invoke()
               d.parametersConfig?.forEach((param) => {
                 args[param.index] = resolver(param, ctx, args[param.index]);
               });
@@ -233,15 +243,17 @@ export default function () {
       );
     });
 
-    $$globals.use.push({
-      path: basePath,
-      handlers: router,
-    });
+    // $$globals.use.push({
+    //   path: basePath,
+    //   handlers: router,
+    // });
 
-    $$globals.use.forEach((m) => {
+    $$globals.globalUse.forEach((m) => {
       if ("path" in m) wrapperRouter.use(m.path!, m.handlers as any);
       else wrapperRouter.use(m as Middleware);
     });
+
+    wrapperRouter.use(basePath, router);
 
     return wrapperRouter;
   }

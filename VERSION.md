@@ -27,3 +27,9 @@ feat: added ReqExtract decorator
 ## Version: 0.0.40
 feat: added ReqExtract decorator
 
+## Version: 0.0.41
+fix: fixed it to express dependencies
+
+## Version: 0.0.42
+fix: fixed it to express dependencies
+
