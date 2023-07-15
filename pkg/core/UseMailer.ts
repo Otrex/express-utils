@@ -68,7 +68,6 @@ class StringEngine implements ITemplateEngine {
 class Mail implements IMail {
   static sender: ISender;
   static templateEngine: ITemplateEngine;
-
   public templateContent: string;
 
   constructor(public email: string, public template: string, public subject?: string, public data?: Record<string, any>) {}

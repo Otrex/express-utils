@@ -108,3 +108,25 @@ export interface IServerConfig {
   port: number;
   basePath: string;
 }
+
+export type ParameterConfig = {
+  index: number;
+  action: string;
+  runner?: Function;
+};
+
+export interface IController {
+  new (...args: any[]): any;
+  $register: () => Router;
+}
+
+
+export type SupportedMethods = "get" | "all" | "post" | "put" | "delete" | "patch";
+export type RouteValue = {
+  name: string;
+  method: SupportedMethods;
+  path: string;
+  middlewares: Middleware[];
+  parametersConfig: Array<ParameterConfig>;
+};
+

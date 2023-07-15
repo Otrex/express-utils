@@ -68,7 +68,7 @@ class SwaggerSpecification {}
 
 @AfterEach(after)
 @Controller()
-class TextController extends BaseController(Router) {
+class TextController extends BaseController {
   t: string = " pink";
   service: TextService;
 
@@ -117,3 +117,19 @@ Server.start({
     logger.info(`Port Started on ${port}`);
   },
 });
+
+
+class ManGoAPI extends Server {
+  app = express();
+  register() {
+    this.app.use()
+  }
+
+  async beforeStart() {
+
+  }
+
+  onStart() {
+    // Register
+  }
+}

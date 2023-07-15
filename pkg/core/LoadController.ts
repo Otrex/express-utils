@@ -19,11 +19,13 @@ function singleController<T extends IController>(controller: T) {
 
 export default function <T extends IController>(controllers: T[] | T): Router {
   if (Array.isArray(controllers)) {
-    const $router = Router();
+    const $routerGroup = Router();
     controllers.forEach((ctr) => {
+      const $router = Router();
       $router.use(singleController(ctr));
+      $routerGroup.use('/', $router);
     });
-    return $router;
+    return $routerGroup;
   }
   return singleController(controllers);
 }

@@ -1,8 +1,7 @@
-import { Request, Router, RouterOptions } from "express";
-import { ClassConstructor, IAfterEach, KeyOf, Middleware } from "../types";
+import { Request, Router } from "express";
+import { ClassConstructor, IAfterEach, KeyOf, Middleware, ParameterConfig, RouteValue, SupportedMethods } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
-import { resolveRoutePath } from "../utils";
-import { colours } from "./Logger";
+import { printTopic, resolveRoutePath } from "../utils";
 
 type RequestAttrs = KeyOf<Request>;
 type RequestExtractorParams = `${string}.${string}`
@@ -12,43 +11,13 @@ type UseHandler = {
   handlers: Middleware | Middleware[];
 };
 
-type SupportedMethods = "get" | "all" | "post" | "put" | "delete" | "patch";
-
 interface GlobalMiddlewareOptions {
   basePath: string;
   after: IAfterEach;
   use: (UseHandler | Middleware)[];
 }
-type ParameterConfig = {
-  index: number;
-  action: string;
-  runner?: Function;
-};
-
-type RouteValue = {
-  name: string;
-  method: SupportedMethods;
-  path: string;
-  middlewares: Middleware[];
-  parametersConfig: Array<ParameterConfig>;
-};
 
 type Routes = Record<string, RouteValue>;
-
-const printTopic = (
-  route: RouteValue,
-  constructorName: string,
-  basePath: string
-) => {
-  const { path, method, name } = route;
-  console.log(
-    colours.fg.green,
-    `${constructorName}.${name} => ${method.toUpperCase()} ${
-      basePath === "/" ? "" : basePath
-    }${path}`,
-    colours.fg.white
-  );
-};
 
 export default function () {
   let $$target: any;
@@ -61,7 +30,7 @@ export default function () {
   const $$routes: Routes = {};
 
   function Controller(options: Partial<GlobalMiddlewareOptions> = {}) {
-    return <T extends ClassConstructor>(constructor: T) => {
+    return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
       $$target = constructor;
       $$globals = {
         ...$$globals,
@@ -73,7 +42,7 @@ export default function () {
   }
 
   function AfterEach(handler: IAfterEach) {
-    return <T extends ClassConstructor>(constructor: T) => {
+    return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
       $$globals = {
         ...$$globals,
         after: handler,
@@ -82,24 +51,14 @@ export default function () {
     };
   }
 
-  const BaseController = (routerCreator: (m?: RouterOptions) => Router) => {
-    return class _controller {
-      success = success;
-      router: Router;
-      respondWith: (data: any, statusCode?: number) => void;
+  
 
-      static $register() {
-        return RegisterRoutes(routerCreator);
-      }
-    };
-  };
-
-  function $$MethodDecoratorFactory(method: SupportedMethods) {
+  function $$MethodDecoratorFactory(method: SupportedMethods): any {
     return function (path?: string) {
       return function (
         target: any,
         key: string,
-        descriptor: PropertyDescriptor
+        descriptor: PropertyDescriptor,
       ) {
         const originalMethod = descriptor.value;
         descriptor.value = function (...args: any[]) {
@@ -129,12 +88,12 @@ export default function () {
     Controller,
   };
 
-  function Middlewares(middlewares: Middleware[]) {
+  function Middlewares(middlewares: Middleware[] | Middleware) {
     return function (target: any, key: string, descriptor: PropertyDescriptor) {
       $$routes[key] = {
         ...($$routes[key] || {}),
         name: key,
-        middlewares,
+        middlewares: Array.isArray(middlewares) ? middlewares : [middlewares],
       };
 
       return descriptor;
@@ -199,12 +158,24 @@ export default function () {
     ReqExtract
   };
 
-  function RegisterRoutes(routerCreator: (m?: RouterOptions) => Router) {
-    const wrapperRouter = routerCreator();
-    const router = routerCreator();
+  const BaseController = class _controller {
+    success = success;
+    router: Router;
+    config: { get: (s: string, _d?: any) => any, [key: string]: any};
+    respondWith: (data: any, statusCode?: number) => void;
+
+    static $register() {
+      return RegisterRoutes();
+    }
+  };
+
+  function RegisterRoutes() {
+    const wrapperRouter = Router();
+    const router = Router();
 
     const $target = new $$target();
     $target.router = wrapperRouter;
+    $target.config = (global as any).config;
 
     const basePath = ($$globals && $$globals.basePath) || "/";
 
@@ -280,7 +251,7 @@ export default function () {
     Http,
     ...Http,
     ...P,
-    Middlewares,
+    Use: Middlewares,
     BaseController,
     Controller,
     AfterEach,

@@ -1,5 +1,22 @@
 import { NextFunction, Request, Response } from "express";
+import { RouteValue } from "../types";
+import { colours as colors } from "../core/Logger";
 import path from "path";
+
+export const printTopic = (
+  route: RouteValue,
+  constructorName: string,
+  basePath: string
+) => {
+  const { path, method, name } = route;
+  console.log(
+    colors.fg.green,
+    `${constructorName}.${name} => ${method.toUpperCase()} ${
+      basePath === "/" ? "" : basePath
+    }${path}`,
+    colors.fg.white
+  );
+};
 
 export const resolveRoutePath = (path: string) => {
   return path === "index"
