@@ -9,9 +9,10 @@ export const printTopic = (
   basePath: string
 ) => {
   const { path, method, name } = route;
+  console.log("- Mounting routes... \n")
   console.log(
     colors.fg.green,
-    `${constructorName}.${name} => ${method.toUpperCase()} ${
+    `- ${constructorName}.${name} => ${method.toUpperCase()} ${
       basePath === "/" ? "" : basePath
     }${path}`,
     colors.fg.white

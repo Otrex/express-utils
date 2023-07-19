@@ -39,3 +39,6 @@ feat: added the invoke function that gets called once every request
 ## Version: 0.0.44
 feat: removed dependency on Conroller
 
+## Version: 0.0.45
+feat: added the message method and the session decorator
+
