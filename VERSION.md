@@ -42,3 +42,6 @@ feat: removed dependency on Conroller
 ## Version: 0.0.45
 feat: added the message method and the session decorator
 
+## Version: 0.0.46
+feat: added the message method and the session decorator
+

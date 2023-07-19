@@ -32,6 +32,7 @@ export default function () {
 
   function Controller(options: Partial<GlobalMiddlewareOptions> = {}) {
     return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
+      $$target = constructor
       $$globals = {
         ...$$globals,
         ...options,
