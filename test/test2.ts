@@ -65,15 +65,16 @@ class TextService {
 
 
 class SwaggerSpecification {}
-
+@Controller()
 class TextController extends BaseController {
   service: TextService;
-
   __setup() {
     this.__use(M1)
     this.__basePath = "/services";
     this.service = new TextService()
   }
+
+
 
   @D.Middlewares([M1])
   @D.Get()
@@ -96,7 +97,7 @@ class TextController extends BaseController {
 
     return ctx.response
       .status(201)
-      .send({ result: this.t, body, id, numbers: this.service.getNumbers() });
+      .send({ body, id, numbers: this.service.getNumbers() });
   }
 }
 

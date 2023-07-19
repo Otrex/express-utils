@@ -36,3 +36,6 @@ fix: fixed it to express dependencies
 ## Version: 0.0.43
 feat: added the invoke function that gets called once every request
 
+## Version: 0.0.44
+feat: removed dependency on Conroller
+

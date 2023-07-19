@@ -142,6 +142,7 @@ export default function () {
   }
 
   const User = ReqExtract("session.user");
+  const Session = (props: string = "") => ReqExtract(`session.${props}`);
 
   /**
    * this
@@ -159,12 +160,14 @@ export default function () {
     Body,
     Query,
     User,
+    Session,
     ReqExtract
   };
 
   const BaseController = class _controller {
     __basePath?: string;
     success = success;
+    message: (message: string, statusCode?: number) => void;
     config: { get: (s: string, _d?: any) => any, [key: string]: any};
     respondWith: (data: any, statusCode?: number) => void;
     private __router: Router;
@@ -223,6 +226,10 @@ export default function () {
               
               $target.respondWith = (data: any, statusCode = 200) => {
                 return success(response, data, statusCode)
+              }
+
+              $target.message = (message: string, statusCode = 200) => {
+                return success(response, {message}, statusCode)
               }
 
               const ctx = { request, response, next };
