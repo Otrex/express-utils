@@ -52,6 +52,20 @@ export default function () {
     };
   }
 
+
+  function Middlewares(middlewares: Middleware[] | Middleware) {
+    return function (target: any, key: string, descriptor: PropertyDescriptor) {
+      $$routes[key] = {
+        ...($$routes[key] || {}),
+        name: key,
+        middlewares: Array.isArray(middlewares) ? middlewares : [middlewares],
+      };
+
+      console.log("Midle", $$routes);
+      
+      return descriptor;
+    };
+  }
   
 
   function $$MethodDecoratorFactory(method: SupportedMethods): any {
@@ -74,6 +88,8 @@ export default function () {
           path: path || `/${resolveRoutePath(key)}`,
         };
 
+        console.log("Verb", $$routes);
+
         return descriptor;
       };
     };
@@ -89,18 +105,6 @@ export default function () {
     Use: Middlewares,
     Controller,
   };
-
-  function Middlewares(middlewares: Middleware[] | Middleware) {
-    return function (target: any, key: string, descriptor: PropertyDescriptor) {
-      $$routes[key] = {
-        ...($$routes[key] || {}),
-        name: key,
-        middlewares: Array.isArray(middlewares) ? middlewares : [middlewares],
-      };
-
-      return descriptor;
-    };
-  }
 
   function $$ParameterDecoratorFactory(action: string, runner?: Function) {
     return function (target: any, key: string, index: number) {
