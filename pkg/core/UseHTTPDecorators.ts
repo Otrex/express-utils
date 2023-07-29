@@ -60,8 +60,6 @@ export default function () {
         name: key,
         middlewares: Array.isArray(middlewares) ? middlewares : [middlewares],
       };
-
-      console.log("Midle", $$routes);
       
       return descriptor;
     };
@@ -82,13 +80,10 @@ export default function () {
 
         $$routes[key] = {
           ...($$routes[key] || {}),
-          middlewares: [],
           name: key,
           method,
           path: path || `/${resolveRoutePath(key)}`,
         };
-
-        console.log("Verb", $$routes);
 
         return descriptor;
       };
@@ -165,6 +160,8 @@ export default function () {
     Body,
     Query,
     User,
+    File: () => ReqExtract('file.'),
+    Files: () => ReqExtract('files.'),
     Session,
     ReqExtract
   };
@@ -225,7 +222,7 @@ export default function () {
         d.path,
         ...([
           ...$$globals.use,
-          ...d.middlewares,
+          ...(d.middlewares ? d.middlewares : []),
           async (request, response, next) => {
             try {
               

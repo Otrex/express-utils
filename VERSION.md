@@ -48,3 +48,18 @@ feat: added the message method and the session decorator
 ## Version: 0.0.47
 feat: added the message method and the session decorator
 
+## Version: 0.0.48
+feat: added the message method and the session decorator
+
+## Version: 0.0.49
+feat: added the message method and the session decorator
+
+## Version: 0.0.50
+feat: added the message method and the session decorator
+
+## Version: 0.0.51
+feat: added the message method and the session decorator
+
+## Version: 0.0.52
+feat: added the message method and the session decorator
+
