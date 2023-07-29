@@ -125,7 +125,22 @@ export default class _Documentation {
     };
   }
 
-  resolveRequestBody(req: any = {}) {
+  resolveRequestBody(req: any = {}, options: any = {}) {
+    if (options.request && options.request.body) {
+      return Object.values(options.request.body).length
+        ? {
+            requestBody: {
+              content: {
+                [options.request.headers['content-type'] || options.request.headers['Content-Type']]: {
+                  schema: this.getSchema(options.request.body),
+                  example: options.request.body,
+                },
+              },
+            },
+          }
+        : {};
+    }
+
     return req.body && Object.values(req.body).length
       ? {
           requestBody: {
@@ -203,7 +218,7 @@ export default class _Documentation {
         if (template.paths[path][request.method]) {
           if (response.status === 200) {
             template.paths[path][request.method].requestBody = //
-              this.resolveRequestBody(request).requestBody || {};
+              this.resolveRequestBody(request, options).requestBody || {};
           }
           template.paths[path][request.method].responses = {
             ...(template.paths[path][request.method].responses || {}),
