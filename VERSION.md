@@ -63,3 +63,6 @@ feat: added the message method and the session decorator
 ## Version: 0.0.52
 feat: added the message method and the session decorator
 
+## Version: 0.0.53
+feat: added file decorator
+

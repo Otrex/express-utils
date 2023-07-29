@@ -141,7 +141,6 @@ export default function () {
     return $$SubRequestParameterDecoratorFactory(requestField, field);
   }
 
-  const User = ReqExtract("session.user");
   const Session = (props: string = "") => ReqExtract(`session.${props}`);
 
   /**
@@ -159,11 +158,11 @@ export default function () {
     Pipe,
     Body,
     Query,
-    User,
-    File: () => ReqExtract('file.'),
-    Files: () => ReqExtract('files.'),
     Session,
-    ReqExtract
+    ReqExtract,
+    File: ReqExtract('file.'),
+    Files: ReqExtract('files.'),
+    User: ReqExtract("session.user"),
   };
 
   const BaseController = class _controller {
