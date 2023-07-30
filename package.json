@@ -1,6 +1,6 @@
 {
   "name": "@obisiket1/express-utils",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "description": "This is a library of utility decorators, components, and functions that can be used together with typescript express",
   "main": "build/pkg/index.js",
   "types": "build/pkg/index.d.ts",

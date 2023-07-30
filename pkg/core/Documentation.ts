@@ -9,13 +9,40 @@ type DocParams = {
   version?: string;
   urls?: string[];
 };
+
+export type AddEndpointOption = {
+  request: {
+    body: any;
+    headers: any;
+  },
+  tags?: any[];
+  summary?: string;
+  description?: string;
+  [key: string]: any;
+}
+
+export class _$Ref {
+  constructor(public _path: string) {}
+  static use(component: string) {
+    return new _$Ref(component);
+  }
+  get path() {
+    return `#/components/schemas/${this._path}`
+  }
+}
+
 export default class _Documentation {
   public filePaths: string;
   public masterTemplate: Record<string, any>;
+  public components: Record<string, any>;
   public endpoints: Record<string, any>[] = [];
 
   constructor({ title, filePaths, version, urls }: DocParams) {
     this.filePaths = filePaths || this.filePaths;
+    this.components = {
+      schemas: {}
+    };
+
     this.masterTemplate = {
       openapi: "3.0.0",
       info: {
@@ -44,6 +71,12 @@ export default class _Documentation {
   getSchema(variable: any): any {
     if (variable == null) {
       return {};
+    }
+
+    if (variable instanceof _$Ref) {
+      return {
+        $ref: variable.path
+      }
     }
 
     if (variable instanceof ReadStream) {
@@ -117,6 +150,7 @@ export default class _Documentation {
   getPath(req: any, res: any, options: any = {}) {
     return {
       [req.method]: {
+        summary: options.summary || "",
         description: options.description || "",
         tags: options.tags || [],
         parameters: [
@@ -194,7 +228,7 @@ export default class _Documentation {
     });
   };
 
-  transformPath = (path: string, options: any): string => {
+  transformPath = (path: string, options: AddEndpointOption): string => {
     if (options.pathParameters) {
       const pathArray = path
         .split("/")
@@ -212,6 +246,10 @@ export default class _Documentation {
     }
     return path.split("?").shift() as string;
   };
+
+  addComponent(name: string, schema: any) {
+    this.components.schemas[name] = this.getSchema(schema);
+  }
 
   renderDocumentation() {
     const template = { ...this.masterTemplate };
@@ -244,6 +282,8 @@ export default class _Documentation {
         };
       }
     }
+
+    template.components = this.components;
 
     fs.writeFileSync(
       this.filePaths,

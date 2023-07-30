@@ -90,3 +90,6 @@ feat: updated documenter
 ## Version: 0.0.61
 feat: updated documenter
 
+## Version: 0.0.62
+feat: updated multi-part/form-data
+

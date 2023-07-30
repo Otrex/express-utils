@@ -28,17 +28,16 @@ export function success<T extends Record<string, any>>(
 }
 
 export function _paginateResponse<T>(
-  data: [T, number],
+  data: any,
   page: number,
   limit: number,
-  sanitizer = (d: T): any => d
 ) {
   const [result, total] = data;
   const lastPage = Math.ceil(total / limit);
-  const nextPage = page + 1 > lastPage ? null : page + 1;
-  const prevPage = page - 1 < 1 ? null : page - 1;
+  const nextPage = +page + 1 > lastPage ? null : +page + 1;
+  const prevPage = +page - 1 < 1 ? null : +page - 1;
   return {
-    data: sanitizer(result),
+    data: result,
     pageData: {
       total,
       currentPage: +page,
