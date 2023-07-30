@@ -1,5 +1,5 @@
 /* eslint-disable */
-import fs from "fs";
+import fs, { ReadStream } from "fs";
 import path from "path";
 import URL from "url";
 
@@ -44,6 +44,13 @@ export default class _Documentation {
   getSchema(variable: any): any {
     if (variable == null) {
       return {};
+    }
+
+    if (variable instanceof ReadStream) {
+      return { 
+        type: 'string',
+        format: 'binary'      
+      }
     }
 
     switch (typeof variable) {
@@ -119,7 +126,7 @@ export default class _Documentation {
         ],
         ...(req.method.toLowerCase() === "get"
           ? {}
-          : this.resolveRequestBody(req)),
+          : this.resolveRequestBody(req, options)),
         responses: this.resolveResponse(res),
       },
     };

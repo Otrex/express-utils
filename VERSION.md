@@ -69,3 +69,24 @@ feat: added file decorator
 ## Version: 0.0.54
 feat: added file decorator
 
+## Version: 0.0.55
+feat: updated documenter
+
+## Version: 0.0.56
+feat: updated documenter
+
+## Version: 0.0.57
+feat: updated documenter
+
+## Version: 0.0.58
+feat: updated documenter
+
+## Version: 0.0.59
+feat: updated documenter
+
+## Version: 0.0.60
+feat: updated documenter
+
+## Version: 0.0.61
+feat: updated documenter
+
