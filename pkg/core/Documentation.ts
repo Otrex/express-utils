@@ -68,7 +68,7 @@ export default class _Documentation {
     };
   }
 
-  getSchema(variable: any): any {
+  getSchema(variable: any, options: any): any {
     if (variable == null) {
       return {};
     }
@@ -88,6 +88,12 @@ export default class _Documentation {
 
     switch (typeof variable) {
       case "string":
+        if (options && options.enums && options.enums[variable]) {
+          return {
+            type: "string",
+            enum: options.enums[variable]
+          }
+        }
         return { type: "string" };
       case "number":
         return { type: "number" };
@@ -97,7 +103,7 @@ export default class _Documentation {
         if (Array.isArray(variable)) {
           return {
             type: "array",
-            items: this.getSchema(variable[0]),
+            items: this.getSchema(variable[0], options),
           };
         }
         const schema: { type: string; properties: Record<string, any> } = {
@@ -105,7 +111,7 @@ export default class _Documentation {
           properties: {},
         };
         for (const [key, value] of Object.entries(variable)) {
-          schema.properties[key] = this.getSchema(value);
+          schema.properties[key] = this.getSchema(value, options);
         }
         return schema;
       default:
@@ -119,22 +125,22 @@ export default class _Documentation {
       in: "path",
       name: param.name,
       description: param.description || "",
-      schema: this.getSchema("string"),
+      schema: this.getSchema("string", options),
       required: true,
     }));
   }
 
-  getQueryParameters(path: string) {
+  getQueryParameters(path: string, options: any) {
     const { URLSearchParams } = URL;
     const queryParams = new URLSearchParams(path.split("?")[1]);
     return Array.from(queryParams.entries()).map(([key, value]) => ({
       in: "query",
       name: key,
-      schema: this.getSchema(value),
+      schema: this.getSchema(value, options),
     }));
   }
 
-  getHeaderParameters(headers: Record<string, any>) {
+  getHeaderParameters(headers: Record<string, any>, options: any) {
     return Object.keys(headers)
       .filter(
         (key: any) =>
@@ -143,7 +149,7 @@ export default class _Documentation {
       .map((header) => ({
         in: "header",
         name: header,
-        schema: this.getSchema(headers[header]),
+        schema: this.getSchema(headers[header], options),
       }));
   }
 
@@ -154,14 +160,14 @@ export default class _Documentation {
         description: options.description || "",
         tags: options.tags || [],
         parameters: [
-          ...this.getHeaderParameters(req.headers),
+          ...this.getHeaderParameters(req.headers, options),
           ...this.getPathParameters(options),
-          ...this.getQueryParameters(req.path),
+          ...this.getQueryParameters(req.path, options),
         ],
         ...(req.method.toLowerCase() === "get"
           ? {}
           : this.resolveRequestBody(req, options)),
-        responses: this.resolveResponse(res),
+        responses: this.resolveResponse(res, options),
       },
     };
   }
@@ -173,7 +179,7 @@ export default class _Documentation {
             requestBody: {
               content: {
                 [options.request.headers['content-type'] || options.request.headers['Content-Type']]: {
-                  schema: this.getSchema(options.request.body),
+                  schema: this.getSchema(options.request.body, options),
                   example: options.request.body,
                 },
               },
@@ -187,7 +193,7 @@ export default class _Documentation {
           requestBody: {
             content: {
               "application/json": {
-                schema: this.getSchema(req.body),
+                schema: this.getSchema(req.body, options),
                 example: req.body,
               },
             },
@@ -195,13 +201,13 @@ export default class _Documentation {
         }
       : {};
   }
-  resolveResponse(res: any) {
+  resolveResponse(res: any, options: any) {
     return {
       [res.status]: {
         description: "",
         content: {
           "application/json": {
-            schema: this.getSchema(res.body),
+            schema: this.getSchema(res.body, options),
             example: res.body,
           },
         },
@@ -248,7 +254,7 @@ export default class _Documentation {
   };
 
   addComponent(name: string, schema: any) {
-    this.components.schemas[name] = this.getSchema(schema);
+    this.components.schemas[name] = this.getSchema(schema, {});
   }
 
   renderDocumentation() {
@@ -267,7 +273,7 @@ export default class _Documentation {
           }
           template.paths[path][request.method].responses = {
             ...(template.paths[path][request.method].responses || {}),
-            ...this.resolveResponse(response),
+            ...this.resolveResponse(response, options),
           };
         } else {
           template.paths[path][request.method] = {

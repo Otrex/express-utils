@@ -93,3 +93,9 @@ feat: updated documenter
 ## Version: 0.0.62
 feat: updated multi-part/form-data
 
+## Version: 0.0.63
+feat: added Ref for pagination
+
+## Version: 0.0.64
+feat: added Ref for pagination
+

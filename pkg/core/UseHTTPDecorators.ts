@@ -190,7 +190,7 @@ export default function () {
     }
     
     static $register() {
-      $$target = this
+      if (!$$target) $$target = this
       return RegisterRoutes();
     }
   };
