@@ -18,6 +18,24 @@ export const printTopic = (
   );
 };
 
+export function sortPaths(sample: string[]) {
+  return sample
+    .map(e => [e.split("/"), e] as [string[], string])
+    .sort((a, b) => b[0].length - a[0].length)
+    .map((el, idx) => {
+      const variablePathIdx = el[0].findIndex((e) => e.includes(":"))
+      return [
+        variablePathIdx === -1 
+        ? sample.length 
+        : variablePathIdx, 
+        el[1]
+      ] as [number, string];
+    }).sort((a, b) => {
+      return b[0] - a[0];
+    }).map(e => e[1])
+  }
+
+
 export const resolveRoutePath = (path: string) => {
   return path === "index"
     ? ""
