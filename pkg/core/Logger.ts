@@ -21,6 +21,7 @@ export const colours = {
     white: "\x1b[37m",
     crimson: "\x1b[38m", // Scarlet
   },
+
   bg: {
     black: "\x1b[40m",
     red: "\x1b[41m",

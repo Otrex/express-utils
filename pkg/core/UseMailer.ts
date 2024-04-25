@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "fs";
+import { readdirSync, readFile } from "fs";
 import { join } from "path";
 import { IMail, ISender, ITemplateEngine, MailerOptions } from "../types";
+import { promisify } from "util";
 
 const TEMPLATE_EXT = "tmpl"
 
@@ -36,27 +37,31 @@ class StringEngine implements ITemplateEngine {
     return matches;
   }
 
-  getTemplate(template: string) {
+  async getTemplate(template: string) {
     if (!template) throw new Error("No template entered for template: '" + template + "'");
     const $template = this.templates.find(t => t.includes(`${template}.${TEMPLATE_EXT}`));
-    
+
     if (!$template) throw new Error(`Template, "${template}" not found`);
-    return readFileSync(join(this.templatePath, $template)).toString();
+    return promisify(readFile)(join(this.templatePath, $template)).toString();
   }
 
-  compile(template: string): string {
+  async compile(template: string): Promise<string> {
     try {
-      const $template = this.getTemplate(template);
+      const $template = await this.getTemplate(template);
       const componentRegex = /{%[^%}]*%}/g;
       const components = this.findAllOccurrences($template, componentRegex);
       const componentsPath = components.map((e) => e.split("%")[1].trim());
 
-      const replacements = componentsPath.map((e, idx) => {
-        return [
-          components[idx],
-          this.getTemplate(e),
-        ];
-      });
+      const replacements: string[][] = [];
+
+      for (let i = 0; i < componentsPath.length; i++) {
+        replacements.push([
+          components[i],
+          await this.getTemplate(
+            componentsPath[i]
+          )
+        ])
+      }
 
       return this.replaceAllFromArray($template, replacements);
     } catch (error: any) {
@@ -70,11 +75,10 @@ class Mail implements IMail {
   static templateEngine: ITemplateEngine;
   public templateContent: string;
 
-  constructor(public email: string, public template: string, public subject?: string, public data?: Record<string, any>) {}
+  constructor(public email: string, public template: string, public subject?: string, public data?: Record<string, any>) { }
 
-  static create(options: { template: string; email: string; subject?: string, data?: Record<string, any>}) {
+  static create(options: { template: string; email: string; subject?: string, data?: Record<string, any> }) {
     return new Mail(options.email, options.template, options.subject, options.data)
-      .getTemplate();
   }
 
   static setup(opts: MailerOptions & { templates: string[] }) {
@@ -84,13 +88,14 @@ class Mail implements IMail {
     Mail.templateEngine.templatePath = opts.templatePath;
   }
 
-  getTemplate() {
+  async getTemplate() {
     if (!this.template) throw new Error("No template selected");
-    this.templateContent = Mail.templateEngine.compile(this.template);
+    this.templateContent = await Mail.templateEngine.compile(this.template);
     return this;
   }
 
   async send() {
+    await this.getTemplate();
     Mail.templateEngine.render(this);
     return Mail.sender.send(this);
   }

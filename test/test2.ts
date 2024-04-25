@@ -20,35 +20,6 @@ const M1 = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export default class GeneralMiddleware {
-  static ErrorHandler(
-    err: Error | APIError,
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    if (res.headersSent) return;
-
-    if ("getType" in err) {
-      return res.status(err.statusCode || 500).json({
-        state: "error",
-        type: err.name,
-        message: err.message,
-        timestamp: Date.now(),
-        ...(true ? { stack: err.stack } : {}),
-      });
-    }
-
-    return res.status(500).json({
-      state: "error",
-      type: "InternalServerError",
-      timestamp: Date.now(),
-      message: "Something went wrong | Contact us at support@servicer.io",
-      ...(true ? { stack: err.stack } : {}),
-    });
-  }
-}
-
 const pipe = (data: Record<string, any>) => {
   return { data, ["key"]: "red" };
 };
@@ -64,7 +35,7 @@ class TextService {
 }
 
 
-class SwaggerSpecification {}
+
 @Controller()
 class TextController extends BaseController {
   service: TextService;
@@ -106,7 +77,7 @@ const app = express();
 app.use(M1);
 app.use(express.json());
 app.use("/", mount([TextController]));
-app.use(GeneralMiddleware.ErrorHandler);
+
 
 Server.start({
   force: true,

@@ -13,7 +13,7 @@ const latestCommitMessage = execSync("git log -1 --pretty=%B")
 // Get the version bump type from command line argument
 const bumpType = process.argv[2];
 
-// triger running build version
+// trigger running build version
 execSync("npm run build");
 
 // Increment the version based on the bump type

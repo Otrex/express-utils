@@ -1,4 +1,5 @@
 import { Logger } from "..";
+import * as dotenv from "dotenv";
 
 type GenericConfig = Record<
   string,
@@ -6,14 +7,14 @@ type GenericConfig = Record<
   | number
   | string
   | Record<
-      string,
-      | boolean
-      | number
-      | string
-      | string[]
-      | number[]
-      | Record<string, string | number>
-    >
+    string,
+    | boolean
+    | number
+    | string
+    | string[]
+    | number[]
+    | Record<string, string | number>
+  >
 >;
 
 export const _validateConfig = <T extends Record<string, any>>(
@@ -72,12 +73,14 @@ export const _createConfig = <T extends GenericConfig>(data: {
 export const _useConfig = (configOption: {
   optional?: string[];
   exitOnFail?: boolean;
-}) => {
+} & dotenv.DotenvConfigOptions) => {
+  const { optional = [], exitOnFail, ...dotenvConfigOptions } = configOption;
+  dotenv.config(dotenvConfigOptions);
   return <T extends GenericConfig>(config: T) => {
     return _validateConfig(
       config,
-      configOption.optional || [],
-      configOption.exitOnFail
+      optional,
+      exitOnFail
     );
   };
 };

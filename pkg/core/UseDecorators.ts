@@ -1,6 +1,4 @@
 import {
-  NextFunction,
-  Request,
   Response,
   Router,
   RouterOptions,
@@ -30,7 +28,7 @@ type GlobalOptions = {
   @param {string} [baseRoute=""] - Base route for all the routes inside the controller.
   @returns {{ Controller, globalMiddleware, routes, registerRoutes, asyncHandler, addRoute, success }} - An object containing functions and properties for adding routes and middlewares.
 */
-export default function (baseRoute = "") {
+export default function (baseRoute = "", validator?: Function) {
   const _globalMiddleware: Middleware[] = [];
   const _routes: { [key: string]: Routes[] } = {};
   const _useHandlers: UseHandler[] = [];
@@ -157,7 +155,6 @@ export default function (baseRoute = "") {
         descriptor: PropertyDescriptor
       ) => {
         const handler = descriptor.value;
-        console.log(target);
 
         const $path =
           path ||

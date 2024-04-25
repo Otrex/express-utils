@@ -99,3 +99,6 @@ feat: added Ref for pagination
 ## Version: 0.0.64
 feat: added Ref for pagination
 
+## Version: 0.0.65
+feat: added sorter
+

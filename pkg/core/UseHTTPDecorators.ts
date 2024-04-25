@@ -13,6 +13,7 @@ type UseHandler = {
 
 interface GlobalMiddlewareOptions {
   basePath?: string;
+  validate?: Function;
   after: IAfterEach;
   use: (UseHandler | Middleware)[];
   globalUse: (UseHandler | Middleware)[];
@@ -22,17 +23,21 @@ type Routes = Record<string, RouteValue>;
 
 export default function () {
   let $$target: any;
+  let $$validate: Function | undefined;
   let $$globals: GlobalMiddlewareOptions = {
     after: () => {},
     use: [],
     globalUse: []
   };
+  
 
   const $$routes: Routes = {};
 
-  function Controller(options: Partial<GlobalMiddlewareOptions> = {}) {
+  function Controller(opts: Partial<GlobalMiddlewareOptions> = {}) {
     return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
-      $$target = constructor
+      const {validate, ...options} = opts;
+      $$target = constructor;
+      $$validate = validate;
       $$globals = {
         ...$$globals,
         ...options,
@@ -66,7 +71,7 @@ export default function () {
   }
   
 
-  function $$MethodDecoratorFactory(method: SupportedMethods): any {
+  function $$MethodDecoratorFactory(method: SupportedMethods) {
     return function (path?: string) {
       return function (
         target: any,
@@ -168,6 +173,7 @@ export default function () {
   const BaseController = class _controller {
     __basePath?: string;
     success = success;
+    validate = $$validate;
     message: (message: string, statusCode?: number) => void;
     config: { get: (s: string, _d?: any) => any, [key: string]: any};
     respondWith: (data: any, statusCode?: number) => void;

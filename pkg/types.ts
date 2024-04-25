@@ -16,7 +16,7 @@ export interface ITemplateEngine<T = Record<string, any>> {
   templates: string[];
   templatePath: string;
   render(mail: IMail): void;
-  compile(sources: string): string;
+  compile(sources: string): Promise<string>;
 }
 
 export interface IMail {
@@ -59,7 +59,7 @@ export interface Context<T = Request> {
 export type KeyOf<T> = keyof T;
 
 export interface ClassConstructor {
-  new (...args: any[]): {};
+  new(...args: any[]): {};
 }
 
 export type Middleware = RequestHandler | RequestHandler[];
@@ -116,7 +116,7 @@ export type ParameterConfig = {
 };
 
 export interface IController {
-  new (...args: any[]): any;
+  new(...args: any[]): any;
   $register: () => Router;
 }
 

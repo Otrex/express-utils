@@ -1,0 +1,1 @@
+declare function useHttpDecorator(): any;
