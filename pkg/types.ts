@@ -19,6 +19,13 @@ export interface ITemplateEngine<T = Record<string, any>> {
   compile(sources: string): Promise<string>;
 }
 
+export interface MiddlewareF<T, R = Response> {
+  (req: T, res: R, next: NextFunction, value?: string): Promise<void>
+}
+
+export type ParamHandler = Record<string, MiddlewareF<Request<Record<string, any>>>>;
+
+
 export interface IMail {
   email: string;
   subject?: string;

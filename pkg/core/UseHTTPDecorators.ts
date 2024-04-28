@@ -1,7 +1,7 @@
 import { Request, RequestHandler, Router } from "express";
-import { ClassConstructor, IAfterEach, KeyOf, Middleware, ParameterConfig, RouteValue, SupportedMethods } from "../types";
+import { ClassConstructor, IAfterEach, KeyOf, Middleware, ParamHandler, ParameterConfig, RouteValue, SupportedMethods } from "../types";
 import { _APIResponse, success } from "./ApiResponse";
-import { printTopic, resolveRoutePath } from "../utils";
+import { printTopic, resolveRoutePath, catchMiddlewareError as CME } from "../utils";
 
 type RequestAttrs = KeyOf<Request>;
 type RequestExtractorParams = `${string}.${string}`
@@ -14,6 +14,7 @@ type UseHandler = {
 interface GlobalMiddlewareOptions {
   basePath?: string;
   validate?: Function;
+  paramHandlers?: ParamHandler,
   after: IAfterEach;
   use: (UseHandler | Middleware)[];
   globalUse: (UseHandler | Middleware)[];
@@ -24,26 +25,28 @@ type Routes = Record<string, RouteValue>;
 export default function () {
   let $$target: any;
   let $$validate: Function | undefined;
+  let $$paramHandler: ParamHandler | undefined;
   let $$globals: GlobalMiddlewareOptions = {
-    after: () => {},
+    after: () => { },
     use: [],
     globalUse: []
   };
-  
+
 
   const $$routes: Routes = {};
 
   function Controller(opts: Partial<GlobalMiddlewareOptions> = {}) {
     return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {
-      const {validate, ...options} = opts;
+      const { validate, paramHandlers, ...options } = opts;
       $$target = constructor;
       $$validate = validate;
+      $$paramHandler = paramHandlers || {}
       $$globals = {
         ...$$globals,
         ...options,
         use: [...$$globals.use, ...(options.use || [])],
       };
-      return class extends constructor {};
+      return class extends constructor { };
     };
   }
 
@@ -53,7 +56,7 @@ export default function () {
         ...$$globals,
         after: handler,
       };
-      return class extends constructor {};
+      return class extends constructor { };
     };
   }
 
@@ -65,11 +68,11 @@ export default function () {
         name: key,
         middlewares: Array.isArray(middlewares) ? middlewares : [middlewares],
       };
-      
+
       return descriptor;
     };
   }
-  
+
 
   function $$MethodDecoratorFactory(method: SupportedMethods) {
     return function (path?: string) {
@@ -124,11 +127,11 @@ export default function () {
   ) => {
     return field
       ? $$ParameterDecoratorFactory("runner-req", (req: Request) => {
-          return req[attr] && req[attr][field];
-        })
+        return req[attr] && req[attr][field];
+      })
       : $$ParameterDecoratorFactory("runner-req", (req: Request) => {
-          return req[attr];
-        });
+        return req[attr];
+      });
   };
 
   const Req = $$ParameterDecoratorFactory("request");
@@ -175,7 +178,7 @@ export default function () {
     success = success;
     validate = $$validate;
     message: (message: string, statusCode?: number) => void;
-    config: { get: (s: string, _d?: any) => any, [key: string]: any};
+    config: { get: (s: string, _d?: any) => any, [key: string]: any };
     respondWith: (data: any, statusCode?: number) => void;
     private __router: Router;
 
@@ -188,13 +191,13 @@ export default function () {
       this.__router = Router()
     }
 
-    __invoke() {}
-    __setup() {}
+    __invoke() { }
+    __setup() { }
 
     __use(...middleware: RequestHandler[]) {
       this.__router.use(middleware)
     }
-    
+
     static $register() {
       if (!$$target) $$target = this
       return RegisterRoutes();
@@ -221,6 +224,10 @@ export default function () {
 
     const basePath = ($$globals && $$globals.basePath) || $target.__basePath || "/";
 
+    for (let key in $$paramHandler) {
+      $target.router.param(key, CME($$paramHandler[key]))
+    }
+
     Object.values($$routes).forEach((d) => {
       printTopic(d, $$target.name, basePath);
       $target.router[d.method](
@@ -230,13 +237,13 @@ export default function () {
           ...(d.middlewares ? d.middlewares : []),
           async (request, response, next) => {
             try {
-              
+
               $target.respondWith = (data: any, statusCode = 200) => {
                 return success(response, data, statusCode)
               }
 
               $target.message = (message: string, statusCode = 200) => {
-                return success(response, {message}, statusCode)
+                return success(response, { message }, statusCode)
               }
 
               const ctx = { request, response, next };

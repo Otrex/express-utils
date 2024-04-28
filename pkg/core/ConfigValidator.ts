@@ -76,7 +76,8 @@ export const _useConfig = (configOption: {
 } & dotenv.DotenvConfigOptions) => {
   const { optional = [], exitOnFail, ...dotenvConfigOptions } = configOption;
   dotenv.config(dotenvConfigOptions);
-  return <T extends GenericConfig>(config: T) => {
+  return <T extends GenericConfig>(config: T | ((env?: string) => T)) => {
+    config = typeof config === "function" ? config(process.env.ENVIRONMENT) : config;
     return _validateConfig(
       config,
       optional,

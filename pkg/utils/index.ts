@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { RouteValue } from "../types";
+import { MiddlewareF, RouteValue } from "../types";
 import { colours as colors } from "../core/Logger";
 import path from "path";
 
@@ -11,12 +11,22 @@ export const printTopic = (
   const { path, method, name } = route;
   console.log(
     colors.fg.green,
-    `- ${constructorName}.${name} => ${method.toUpperCase()} ${
-      basePath === "/" ? "" : basePath
+    `- ${constructorName}.${name} => ${method.toUpperCase()} ${basePath === "/" ? "" : basePath
     }${path}`,
     colors.fg.white
   );
 };
+
+export function catchMiddlewareError<T, R = Response>(fn: MiddlewareF<T, R>) {
+  return async (req: T, res: R, next: NextFunction, value?: string) => {
+    try {
+      await fn(req, res, next, value);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
 
 export function sortPaths(sample: string[]) {
   return sample
@@ -25,24 +35,24 @@ export function sortPaths(sample: string[]) {
     .map((el, idx) => {
       const variablePathIdx = el[0].findIndex((e) => e.includes(":"))
       return [
-        variablePathIdx === -1 
-        ? sample.length 
-        : variablePathIdx, 
+        variablePathIdx === -1
+          ? sample.length
+          : variablePathIdx,
         el[1]
       ] as [number, string];
     }).sort((a, b) => {
       return b[0] - a[0];
     }).map(e => e[1])
-  }
+}
 
 
 export const resolveRoutePath = (path: string) => {
   return path === "index"
     ? ""
     : path
-        .split(/(?=[A-Z])/)
-        .join("-")
-        .toLowerCase();
+      .split(/(?=[A-Z])/)
+      .join("-")
+      .toLowerCase();
 };
 export function getFileNameWithoutExtension(filePath: string) {
   const { name, ext } = path.parse(filePath);
@@ -58,21 +68,21 @@ export const isAsync = (func: Function) =>
 
 export const asyncWrapper =
   (handler: any) =>
-  async (...args: Array<Request | Response | NextFunction>) => {
-    try {
-      await handler.apply(null, args);
-    } catch (error) {
-      const next = args[args.length - 1] as NextFunction;
-      next(error);
-    }
-  };
+    async (...args: Array<Request | Response | NextFunction>) => {
+      try {
+        await handler.apply(null, args);
+      } catch (error) {
+        const next = args[args.length - 1] as NextFunction;
+        next(error);
+      }
+    };
 export const wrapper =
   (handler: any) =>
-  (...args: Array<Request | Response | NextFunction>) => {
-    try {
-      return handler.apply(null, args);
-    } catch (error) {
-      const next = args[args.length - 1] as NextFunction;
-      next(error);
-    }
-  };
+    (...args: Array<Request | Response | NextFunction>) => {
+      try {
+        return handler.apply(null, args);
+      } catch (error) {
+        const next = args[args.length - 1] as NextFunction;
+        next(error);
+      }
+    };
