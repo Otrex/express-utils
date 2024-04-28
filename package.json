@@ -1,9 +1,9 @@
 {
   "name": "@obisiket1/express-utils",
-  "version": "0.0.68",
+  "version": "0.0.69",
   "description": "This is a library of utility decorators, components, and functions that can be used together with typescript express",
-  "main": "build/pkg/index.js",
-  "types": "build/pkg/index.d.ts",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "repository": "https://github.com/Otrex/express-utils.git",
   "author": "Obisike Treasure",
   "license": "MIT",
