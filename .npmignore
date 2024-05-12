@@ -1,5 +1,5 @@
 ./src
-./test
+./test/*
 yarn-error.log
 .np-config.json
 src/**/*

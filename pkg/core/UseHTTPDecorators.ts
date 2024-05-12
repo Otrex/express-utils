@@ -1,26 +1,12 @@
 import { Request, RequestHandler, Router } from "express";
-import { ClassConstructor, IAfterEach, KeyOf, Middleware, ParamHandler, ParameterConfig, RouteValue, SupportedMethods } from "../types";
-import { _APIResponse, success } from "./ApiResponse";
+import {
+  ClassConstructor, GlobalMiddlewareOptions, IAfterEach,
+  KeyOf, Middleware, ParamHandler, ParameterConfig, RequestAttrs,
+  RequestExtractorParams, RouteValue, SupportedMethods, _Routes
+} from "../types";
 import { printTopic, resolveRoutePath, catchMiddlewareError as CME } from "../utils";
+import { _APIResponse, success } from "./ApiResponse";
 
-type RequestAttrs = KeyOf<Request>;
-type RequestExtractorParams = `${string}.${string}`
-
-type UseHandler = {
-  path?: string;
-  handlers: Middleware | Middleware[];
-};
-
-interface GlobalMiddlewareOptions {
-  basePath?: string;
-  validate?: Function;
-  paramHandlers?: ParamHandler,
-  after: IAfterEach;
-  use: (UseHandler | Middleware)[];
-  globalUse: (UseHandler | Middleware)[];
-}
-
-type Routes = Record<string, RouteValue>;
 
 export default function () {
   let $$target: any;
@@ -33,7 +19,7 @@ export default function () {
   };
 
 
-  const $$routes: Routes = {};
+  const $$routes: _Routes = {};
 
   function Controller(opts: Partial<GlobalMiddlewareOptions> = {}) {
     return <T extends ClassConstructor>(constructor: T, ...args: any[]) => {

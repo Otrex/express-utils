@@ -5,7 +5,7 @@ import { promisify } from "util";
 
 const TEMPLATE_EXT = "tmpl"
 
-class StringEngine implements ITemplateEngine {
+export class StringEngine implements ITemplateEngine {
   templates: string[];
   templatePath: string;
 

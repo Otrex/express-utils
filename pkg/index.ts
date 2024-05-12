@@ -16,6 +16,7 @@ export const Logger = _Logger;
 export const $Ref = _$Ref;
 
 export { default as useMailer } from "./core/UseMailer";
+export { default as useNotify } from "./core/UseNotify";
 export { default as RegisterController } from "./core/RegisterControllers";
 export { default as useHttpDecorator } from "./core/UseHTTPDecorators";
 export { default as Documentation } from "./core/Documentation";
@@ -28,3 +29,4 @@ export { default as createLogger } from "./core/Logger";
 export { default as Router } from "./core/Router";
 export { default as Server } from "./core/Server";
 export { default as App } from "./core/App";
+export { default as Mail } from "./core/Mail";

@@ -137,3 +137,23 @@ export type RouteValue = {
   parametersConfig: Array<ParameterConfig>;
 };
 
+
+export type RequestAttrs = KeyOf<Request>;
+export type RequestExtractorParams = `${string}.${string}`
+
+export type UseHandler = {
+  path?: string;
+  handlers: Middleware | Middleware[];
+};
+
+export interface GlobalMiddlewareOptions {
+  basePath?: string;
+  validate?: Function;
+  paramHandlers?: ParamHandler,
+  after: IAfterEach;
+  use: (UseHandler | Middleware)[];
+  globalUse: (UseHandler | Middleware)[];
+}
+
+export type _Routes = Record<string, RouteValue>;
+

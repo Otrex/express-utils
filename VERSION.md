@@ -148,3 +148,6 @@ feat: added paramsHandler
 ## Version: 0.0.69
 feat: clean
 
+## Version: 0.0.70
+fix: corrected the path for the typescript
+
