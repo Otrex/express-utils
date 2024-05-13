@@ -154,3 +154,6 @@ fix: corrected the path for the typescript
 ## Version: 0.0.71
 feat: added notifier and mail class
 
+## Version: 0.0.72
+chore: setup
+

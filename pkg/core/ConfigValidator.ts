@@ -8,6 +8,7 @@ type GenericConfig<T = any> = Record<
   | string
   | Record<
     string,
+    | T
     | boolean
     | number
     | string
