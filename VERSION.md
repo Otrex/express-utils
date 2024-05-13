@@ -151,3 +151,6 @@ feat: clean
 ## Version: 0.0.70
 fix: corrected the path for the typescript
 
+## Version: 0.0.71
+feat: added notifier and mail class
+

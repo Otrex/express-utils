@@ -1,7 +1,7 @@
 import { Logger } from "..";
 import * as dotenv from "dotenv";
 
-type GenericConfig = Record<
+type GenericConfig<T = any> = Record<
   string,
   | boolean
   | number
@@ -13,7 +13,7 @@ type GenericConfig = Record<
     | string
     | string[]
     | number[]
-    | Record<string, string | number>
+    | Record<string, string | number | T>
   >
 >;
 
