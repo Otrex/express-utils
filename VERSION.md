@@ -160,3 +160,6 @@ chore: setup
 ## Version: 0.0.73
 chore: setup
 
+## Version: 0.0.74
+fix: updated validate to support *
+

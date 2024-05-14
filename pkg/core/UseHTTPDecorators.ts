@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Router } from "express";
+import { NextFunction, Request, RequestHandler, Response, Router } from "express";
 import {
   ClassConstructor, GlobalMiddlewareOptions, IAfterEach,
   KeyOf, Middleware, ParamHandler, ParameterConfig, RequestAttrs,
@@ -161,6 +161,9 @@ export default function () {
 
   const BaseController = class _controller {
     __basePath?: string;
+    request: Request;
+    response: Response;
+    next: NextFunction;
     success = success;
     validate = $$validate;
     message: (message: string, statusCode?: number) => void;
@@ -224,6 +227,10 @@ export default function () {
           async (request, response, next) => {
             try {
 
+              $target.request = request;
+              $target.response = response;
+              $target.next = next;
+
               $target.respondWith = (data: any, statusCode = 200) => {
                 return success(response, data, statusCode)
               }
@@ -253,8 +260,6 @@ export default function () {
                   response: result,
                 }),
               ]).catch(console.error);
-
-              if (!response.headersSent) return success(response, result);
             } catch (e) {
               next(e);
             }
