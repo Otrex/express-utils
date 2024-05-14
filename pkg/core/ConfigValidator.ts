@@ -27,11 +27,15 @@ export const _validateConfig = <T extends Record<string, any>>(
   Object.entries(config).forEach(([baseKey, baseValue]) => {
     Object.entries(baseValue).forEach(([key, value]) => {
       if (value === "" || value === undefined) {
-        missingKeys.push(`${baseKey}.${key}`);
+        const ckey = `${baseKey}.${key}`
+        const ckeyall = `${baseKey}.*`;
+        if (optional.includes(ckey)) return;
+        if (optional.includes(ckeyall)) return;
+        missingKeys.push(ckey);
       }
     });
   });
-  if (missingKeys.filter((k) => !optional.includes(k)).length) {
+  if (missingKeys.length) {
     const logger = new Logger("app.config");
 
     logger.useColor("red");
@@ -74,11 +78,12 @@ export const _createConfig = <T extends GenericConfig>(data: {
 export const _useConfig = (configOption: {
   optional?: string[];
   exitOnFail?: boolean;
+  envKey?: string
 } & dotenv.DotenvConfigOptions) => {
-  const { optional = [], exitOnFail, ...dotenvConfigOptions } = configOption;
+  const { optional = [], exitOnFail, envKey, ...dotenvConfigOptions } = configOption;
   dotenv.config(dotenvConfigOptions);
   return <T extends GenericConfig>(config: T | ((env?: string) => T)) => {
-    config = typeof config === "function" ? config(process.env.ENVIRONMENT) : config;
+    config = typeof config === "function" ? config(process.env[envKey || 'ENVIRONMENT']) : config;
     return _validateConfig(
       config,
       optional,

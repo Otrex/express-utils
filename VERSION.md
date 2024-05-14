@@ -157,3 +157,6 @@ feat: added notifier and mail class
 ## Version: 0.0.72
 chore: setup
 
+## Version: 0.0.73
+chore: setup
+
