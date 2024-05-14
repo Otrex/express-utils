@@ -260,6 +260,10 @@ export default function () {
                   response: result,
                 }),
               ]).catch(console.error);
+
+              if (!response.headersSent && result) {
+                return success(response, result);
+              }
             } catch (e) {
               next(e);
             }
