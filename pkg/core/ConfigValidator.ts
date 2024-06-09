@@ -75,15 +75,28 @@ export const _createConfig = <T extends GenericConfig>(data: {
   config: T;
 }) => _validateConfig(data.config, data.optional || [], data.exitOnFail);
 
-export const _useConfig = (configOption: {
+export const _useConfig = <Env = any>(configOption: {
   optional?: string[];
   exitOnFail?: boolean;
   envKey?: string
+  defaultEnv?: Env
 } & dotenv.DotenvConfigOptions) => {
-  const { optional = [], exitOnFail, envKey, ...dotenvConfigOptions } = configOption;
+  const { optional = [], exitOnFail, defaultEnv, envKey, ...dotenvConfigOptions } = configOption;
+
   dotenv.config(dotenvConfigOptions);
-  return <T extends GenericConfig>(config: T | ((env?: string) => T)) => {
-    config = typeof config === "function" ? config(process.env[envKey || 'ENVIRONMENT']) : config;
+  return <T extends GenericConfig>(config: T | ((env: Env) => T)) => {
+    let appenv: Env;
+
+    if (process.env[envKey || 'ENVIRONMENT']) {
+      appenv = process.env[envKey || 'ENVIRONMENT'] as Env;
+    } else if (defaultEnv) {
+      appenv = defaultEnv
+    } else {
+      appenv = 'development' as Env
+    }
+
+    config = typeof config === "function" ? config(appenv) : config;
+
     return _validateConfig(
       config,
       optional,
