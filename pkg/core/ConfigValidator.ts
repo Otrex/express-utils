@@ -1,6 +1,12 @@
 import { Logger } from "..";
 import * as dotenv from "dotenv";
 
+type NestedKeyOf<T> = {
+  [K in keyof T & (string | number)]: T[K] extends object
+  ? `${K}` | `${K}.${NestedKeyOf<T[K]>}`
+  : `${K}`;
+}[keyof T & (string | number)];
+
 type GenericConfig<T = any> = Record<
   string,
   | boolean
@@ -51,7 +57,7 @@ export const _validateConfig = <T extends Record<string, any>>(
 
   const returnedConfig = {
     ...config,
-    get: <M = any>(key: string, defaultValue: M) => {
+    get: <M = any>(key: NestedKeyOf<T>, defaultValue?: M) => {
       const keyArray = key.split(".");
       if (keyArray.length > 1) {
         let barrel: any = config;
@@ -87,12 +93,12 @@ export const _useConfig = <Env = any>(configOption: {
   return <T extends GenericConfig>(config: T | ((env: Env) => T)) => {
     let appenv: Env;
 
-    if (process.env[envKey || 'ENVIRONMENT']) {
-      appenv = process.env[envKey || 'ENVIRONMENT'] as Env;
+    if (process.env[envKey || 'APP_ENVIRONMENT']) {
+      appenv = process.env[envKey || 'APP_ENVIRONMENT'] as unknown as Env;
     } else if (defaultEnv) {
       appenv = defaultEnv
     } else {
-      appenv = 'development' as Env
+      appenv = 'development' as unknown as Env
     }
 
     config = typeof config === "function" ? config(appenv) : config;

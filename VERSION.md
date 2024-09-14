@@ -169,3 +169,9 @@ fix: updated validate to support *
 ## Version: 0.0.76
 fix: updated validate to support *
 
+## Version: 0.0.81
+fix: updated the config validator to suport app env
+
+## Version: 0.0.82
+fix: updated the config validator to suport app env
+
