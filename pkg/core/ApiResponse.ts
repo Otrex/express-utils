@@ -38,7 +38,7 @@ export function _paginateResponse<T>(
   const prevPage = +page - 1 < 1 ? null : +page - 1;
   return {
     data: result,
-    pageData: {
+    payload: {
       total,
       currentPage: +page,
       nextPage,
