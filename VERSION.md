@@ -175,3 +175,9 @@ fix: updated the config validator to suport app env
 ## Version: 0.0.82
 fix: updated the config validator to suport app env
 
+## Version: 0.0.83
+fix: updated config type
+
+## Version: 0.0.84
+fix: updated config type
+

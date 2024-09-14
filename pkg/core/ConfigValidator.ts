@@ -1,9 +1,8 @@
 import { Logger } from "..";
 import * as dotenv from "dotenv";
-
 type NestedKeyOf<T> = {
   [K in keyof T & (string | number)]: T[K] extends object
-  ? `${K}` | `${K}.${NestedKeyOf<T[K]>}`
+  ? `${K}` | `${K}.${keyof T[K] & string}`
   : `${K}`;
 }[keyof T & (string | number)];
 

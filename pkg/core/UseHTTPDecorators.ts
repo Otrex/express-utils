@@ -11,7 +11,7 @@ type Decorator = (
   target: any,
   propertyKey: string,
   descriptor: PropertyDescriptor | number
-) => void | PropertyDescriptor;
+) => void | PropertyDescriptor | any;
 
 export default function () {
   let $$target: any;
