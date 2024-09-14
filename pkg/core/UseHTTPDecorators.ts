@@ -7,6 +7,11 @@ import {
 import { printTopic, resolveRoutePath, catchMiddlewareError as CME } from "../utils";
 import { _APIResponse, success } from "./ApiResponse";
 
+type Decorator = (
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor | number
+) => void | PropertyDescriptor;
 
 export default function () {
   let $$target: any;
@@ -61,7 +66,7 @@ export default function () {
 
 
   function $$MethodDecoratorFactory(method: SupportedMethods) {
-    return function (path?: string) {
+    return function (path?: string): Decorator {
       return function (
         target: any,
         key: string,
@@ -95,7 +100,7 @@ export default function () {
     Controller,
   };
 
-  function $$ParameterDecoratorFactory(action: string, runner?: Function) {
+  function $$ParameterDecoratorFactory(action: string, runner?: Function): Decorator {
     return function (target: any, key: string, index: number) {
       $$routes[key] = {
         ...$$routes[key],
@@ -110,7 +115,7 @@ export default function () {
   const $$SubRequestParameterDecoratorFactory = (
     attr: RequestAttrs,
     field?: string
-  ) => {
+  ): Decorator => {
     return field
       ? $$ParameterDecoratorFactory("runner-req", (req: Request) => {
         return req[attr] && req[attr][field];

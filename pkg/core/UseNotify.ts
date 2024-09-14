@@ -22,7 +22,7 @@ export interface JobQueue {
 }
 
 
-class SendNotification<T, M extends Notifier<any>, J extends JobQueue> extends EventEmitter {
+export class SendNotification<T, M extends Notifier<any>, J extends JobQueue> extends EventEmitter {
   private notification: M;
   private jobQueue: J;
 

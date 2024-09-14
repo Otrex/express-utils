@@ -8,3 +8,7 @@ pkg
 pkg/**
 pkg/**/*
 node_modules/
+./__test__/*
+jest.config.js
+yarn.lock
+.vscode
